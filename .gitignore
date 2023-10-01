@@ -50,9 +50,9 @@ SourceArt/**/*.tga
 Binaries/*
 !Binaries/Win64/
 Binaries/Win64/*
-!Binaries/Win64/MyProject4Editor.target
+!Binaries/Win64/StellarHarvestEditor.target
 !Binaries/Win64/UnrealEditor.modules
-!Binaries/Win64/UnrealEditor-MyProject4.dll
+!Binaries/Win64/UnrealEditor-StellarHarvest.dll
 Plugins/*/Binaries/*
 
 # Builds
