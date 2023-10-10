@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class USearchInteractableComponent;
 
 UCLASS()
 class STELLARHARVEST_API AStellarBaseCharacter : public ACharacter
@@ -25,15 +26,28 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostInitializeComponents() override;
 
 // Movement interface
 public:
 	void RequestMove(const FVector2D&);
 	void RequestMove(const FVector&, const float);
-
+	void RequestStartInteraction();
+	void RequestFinishInteraction();
+	
 // Helpers
 protected:
 	FRotator GetActualViewRotation() const;
+	void InitializeObservers();
+	void ToggleHighlightItem(const AActor*, const bool) const;
+
+// Callbacks
+protected:
+	UFUNCTION()
+	void OnInteractableFound(const FHitResult& HitResult, AActor* NewItem);
+
+	UFUNCTION()
+	void OnInteractableLost(AActor* LostItem);
 
 // Components
 protected:
@@ -48,4 +62,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, NoClear)
 	TObjectPtr<UCameraComponent> CameraComponent;
+
+	UPROPERTY()
+	TObjectPtr<USearchInteractableComponent> SearchItemsComponent;
+
+// Properties
+protected:
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> SelectedInteractable;
 };

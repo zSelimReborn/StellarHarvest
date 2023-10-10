@@ -41,6 +41,8 @@ void ATractorPlayerController::SetupInputComponent()
 		{
 			EnhancedInputComponent->BindAction(AnalogMoveAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestAnalogMove);
 			EnhancedInputComponent->BindAction(RequestMouseMoveAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestMovementUsingMouse);
+			EnhancedInputComponent->BindAction(RequestInteractAction, ETriggerEvent::Started, this, &ATractorPlayerController::RequestStartInteraction);
+			EnhancedInputComponent->BindAction(RequestInteractAction, ETriggerEvent::Completed, this, &ATractorPlayerController::RequestFinishInteraction);
 
 			InitializeMappingContext();
 		}
@@ -67,6 +69,22 @@ void ATractorPlayerController::RequestAnalogMove(const FInputActionInstance& Val
 void ATractorPlayerController::RequestMovementUsingMouse(const FInputActionInstance&)
 {
 	EnableMouseMove();
+}
+
+void ATractorPlayerController::RequestStartInteraction(const FInputActionInstance&)
+{
+	if (TractorRef != nullptr)
+	{
+		TractorRef->RequestStartInteraction();
+	}
+}
+
+void ATractorPlayerController::RequestFinishInteraction(const FInputActionInstance&)
+{
+	if (TractorRef != nullptr)
+	{
+		TractorRef->RequestFinishInteraction();
+	}
 }
 
 void ATractorPlayerController::EnableMouseMove()

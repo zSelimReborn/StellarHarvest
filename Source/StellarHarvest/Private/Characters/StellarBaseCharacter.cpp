@@ -4,8 +4,11 @@
 #include "Characters/StellarBaseCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "..\..\Public\Components\SearchInteractableComponent.h"
+#include "Components/HighlightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Interfaces/Interactable.h"
 
 // Sets default values
 AStellarBaseCharacter::AStellarBaseCharacter()
@@ -36,6 +39,14 @@ void AStellarBaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AStellarBaseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	SearchItemsComponent = FindComponentByClass<USearchInteractableComponent>();
+	InitializeObservers();
+}
+
 void AStellarBaseCharacter::RequestMove(const FVector2D& AxisRatio)
 {
 	const float ForwardAxisValue = AxisRatio.X;
@@ -58,6 +69,28 @@ void AStellarBaseCharacter::RequestMove(const FVector& Direction, const float Ax
 	// TODO Engine sound?
 }
 
+void AStellarBaseCharacter::RequestStartInteraction()
+{
+	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
+	{
+		if (IInteractable* Interactable = Cast<IInteractable>(SelectedInteractable))
+		{
+			Interactable->Execute_StartInteraction(SelectedInteractable, this);
+		}
+	}
+}
+
+void AStellarBaseCharacter::RequestFinishInteraction()
+{
+	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
+	{
+		if (IInteractable* Interactable = Cast<IInteractable>(SelectedInteractable))
+		{
+			Interactable->Execute_FinishInteraction(SelectedInteractable, this);
+		}
+	}
+}
+
 FRotator AStellarBaseCharacter::GetActualViewRotation() const
 {
 	FVector CameraLocation;
@@ -65,4 +98,56 @@ FRotator AStellarBaseCharacter::GetActualViewRotation() const
 	GetController()->GetPlayerViewPoint(CameraLocation, CCameraRotation);
 
 	return CCameraRotation;
+}
+
+void AStellarBaseCharacter::InitializeObservers()
+{
+	if (SearchItemsComponent != nullptr)
+	{
+		SearchItemsComponent->OnNewItemFound().AddDynamic(this, &AStellarBaseCharacter::OnInteractableFound);
+		SearchItemsComponent->OnItemLost().AddDynamic(this, &AStellarBaseCharacter::OnInteractableLost);
+	}
+}
+
+void AStellarBaseCharacter::ToggleHighlightItem(const AActor* HighlightActor, const bool bHighlight) const
+{
+	if (HighlightActor)
+	{
+		const UHighlightComponent* HighlightComponent = HighlightActor->FindComponentByClass<UHighlightComponent>();
+		if (HighlightComponent)
+		{
+			if (bHighlight)
+			{
+				HighlightComponent->ActivateHighlight();
+			}
+			else
+			{
+				HighlightComponent->DeactivateHighlight();
+			}
+		}
+	}
+}
+
+void AStellarBaseCharacter::OnInteractableFound(const FHitResult& HitResult, AActor* NewItem)
+{
+	if (NewItem)
+	{
+		if (SelectedInteractable != nullptr)
+		{
+			ToggleHighlightItem(SelectedInteractable, false);
+		}
+
+		ToggleHighlightItem(NewItem, true);
+		SelectedInteractable = NewItem;
+	}
+}
+
+void AStellarBaseCharacter::OnInteractableLost(AActor* LostItem)
+{
+	if (SelectedInteractable != nullptr)
+	{
+		ToggleHighlightItem(SelectedInteractable, false);
+	}
+
+	SelectedInteractable = nullptr;
 }

@@ -29,6 +29,8 @@ public:
 
 	void RequestAnalogMove(const FInputActionInstance&);
 	void RequestMovementUsingMouse(const FInputActionInstance&);
+	void RequestStartInteraction(const FInputActionInstance&);
+	void RequestFinishInteraction(const FInputActionInstance&);
 	
 	void EnableMouseMove();
 	void DisableMouseMove();
@@ -76,4 +78,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> RequestMouseMoveAction;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> RequestInteractAction;
 };
