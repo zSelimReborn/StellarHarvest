@@ -53,7 +53,7 @@ void USearchInteractableComponent::SearchForInteractables()
 			ItemFoundRef = FoundItem;
 		}
 	}
-	else
+	else if (ItemFoundRef != nullptr)
 	{
 		ItemLostDelegate.Broadcast(ItemFoundRef.Get());
 		ItemFoundRef = nullptr;

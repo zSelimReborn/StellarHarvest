@@ -27,4 +27,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Interact")
 	void FinishInteraction(AActor* ActorInteracting);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Interact")
+	bool CanBeInteracted(AActor* ActorInteracting) const;
 };

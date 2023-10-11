@@ -3,9 +3,17 @@
 
 #include "Gameplay/Interact/Crystal.h"
 
+#include "Component/CrystalCollectorComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/HighlightComponent.h"
 #include "Components/WidgetComponent.h"
+
+static TAutoConsoleVariable<bool> CVarDebugCrystalGather(
+	TEXT("StellarHarvest.Crystal.DebugCrystalGather"),
+	false,
+	TEXT("Show debug info crystal gather status."),
+	ECVF_Default
+);
 
 // Sets default values
 ACrystal::ACrystal()
@@ -38,24 +46,105 @@ ACrystal::ACrystal()
 void ACrystal::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CurrentAmountCrystal = MaxAmountCrystal;
 	HighlightComponent->SetMeshComponent(RockMeshComponent);
 	HighlightComponent->SetWidgetComponent(InteractWidgetComponent);
+}
+
+void ACrystal::OnFinishCrystals()
+{
+	CurrentHarvestTime = TimeToHarvest;
+	HighlightComponent->DeactivateHighlight();
+	Execute_FinishInteraction(this, CurrentHarvestingActor);
+	CrystalMeshComponent->SetVisibility(false);
+}
+
+void ACrystal::DrawDebugInfo() const
+{
+	if (CVarDebugCrystalGather->GetBool())
+	{
+		const FString DebugInfo = FString::Printf(TEXT("Crystals: %d\nTime To Harvest: %.2f | Current Harvest Time: %.2f\nRemaining Harvest Time: %.2f"),
+			CurrentAmountCrystal, TimeToHarvest, CurrentHarvestTime, GetRemainingHarvestTime());
+		const FVector CrystalLocation = GetActorLocation();
+		const FVector TextLocation = {CrystalLocation.X, CrystalLocation.Y, CrystalLocation.Z + 300.f};
+		DrawDebugString(GetWorld(), TextLocation, DebugInfo, nullptr, FColor::Black, 0.1f);
+	}
 }
 
 // Called every frame
 void ACrystal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	DrawDebugInfo();
+	if (bSomeoneHarvesting)
+	{
+		AddHarvestTime(DeltaTime);
+	}
 }
 
 void ACrystal::StartInteraction_Implementation(AActor* ActorInteracting)
 {
-	UE_LOG(LogTemp, Error, TEXT("Start interaction %s!"), *GetActorLabel());
+	if (!Execute_CanBeInteracted(this, ActorInteracting))
+	{
+		return;	
+	}
+	
+	if (ActorInteracting == nullptr)
+	{
+		return;
+	}
+	
+	UCrystalCollectorComponent* CrystalCollectorComponent = ActorInteracting->FindComponentByClass<UCrystalCollectorComponent>();
+	if (CrystalCollectorComponent == nullptr)
+	{
+		return;
+	}
+
+	CurrentHarvestingActor = ActorInteracting;
+	bSomeoneHarvesting = true;
+	CrystalCollectorComponent->StartHarvesting(this);
 }
 
 void ACrystal::FinishInteraction_Implementation(AActor* ActorInteracting)
 {
-	UE_LOG(LogTemp, Error, TEXT("Finish interaction %s!"), *GetActorLabel());
+	if (ActorInteracting == nullptr)
+	{
+		return;
+	}
+	
+	UCrystalCollectorComponent* CrystalCollectorComponent = ActorInteracting->FindComponentByClass<UCrystalCollectorComponent>();
+	if (CrystalCollectorComponent == nullptr)
+	{
+		return;
+	}
+
+	CrystalCollectorComponent->StopHarvesting();
+	CurrentHarvestingActor = nullptr;
+	bSomeoneHarvesting = false;
+}
+
+bool ACrystal::CanBeInteracted_Implementation(AActor* ActorInteracting) const
+{
+	// TODO Could also check if actor has crystal collector component
+	return HasCrystals();
+}
+
+int32 ACrystal::Harvest(const int32 RequestedCrystals)
+{
+	// Critical section?
+	const int32 CollectedCrystals = (CurrentAmountCrystal - RequestedCrystals < 0)? CurrentAmountCrystal : RequestedCrystals;
+	CurrentAmountCrystal -= CollectedCrystals;
+	if (CurrentAmountCrystal <= 0)
+	{
+		OnFinishCrystals();
+	}
+	
+	return CollectedCrystals;
+}
+
+void ACrystal::AddHarvestTime(const float DeltaTime)
+{
+	CurrentHarvestTime = FMath::Clamp(CurrentHarvestTime + DeltaTime, 0.f, TimeToHarvest);
 }
 

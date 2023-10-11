@@ -24,6 +24,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void OnFinishCrystals();
+	void DrawDebugInfo() const;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -32,7 +35,55 @@ public:
 public:
 	void StartInteraction_Implementation(AActor* ActorInteracting) override;
 	void FinishInteraction_Implementation(AActor* ActorInteracting) override;
+	bool CanBeInteracted_Implementation(AActor* ActorInteracting) const override;
 
+public:
+	UFUNCTION(BlueprintCallable)
+	int32 Harvest(const int32 RequestedCrystals);
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetMaxAmountCrystals() const { return MaxAmountCrystal; }
+	
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool HasCrystals() const { return CurrentAmountCrystal > 0; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetCrystalsAvailable() const { return CurrentAmountCrystal; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetTimeToHarvest() const { return TimeToHarvest; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrentHarvestTime() const { return CurrentHarvestTime; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrentHarvestTimeRatio() const { return CurrentHarvestTime / TimeToHarvest; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetRemainingHarvestTime() const { return TimeToHarvest - CurrentHarvestTime; }
+
+	void AddHarvestTime(const float);
+	
+// Properties
+protected:
+	UPROPERTY(EditAnywhere, Category="Harvest")
+	int32 MaxAmountCrystal = 10;
+
+	UPROPERTY(EditAnywhere, Category="Harvest")
+	float TimeToHarvest = 5.f;
+	
+	UPROPERTY(Transient)
+	int32 CurrentAmountCrystal = 0;
+
+	UPROPERTY(Transient)
+	float CurrentHarvestTime = 0.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> CurrentHarvestingActor;
+
+	UPROPERTY(Transient)
+	bool bSomeoneHarvesting = false;
+	
 // Components
 protected:
 	UPROPERTY(VisibleAnywhere, NoClear)

@@ -135,6 +135,15 @@ void AStellarBaseCharacter::OnInteractableFound(const FHitResult& HitResult, AAc
 		if (SelectedInteractable != nullptr)
 		{
 			ToggleHighlightItem(SelectedInteractable, false);
+			SelectedInteractable = nullptr;
+		}
+		
+		if (const IInteractable* TempInteractable = Cast<IInteractable>(NewItem))
+		{
+			if (!TempInteractable->Execute_CanBeInteracted(NewItem, this))
+			{
+				return;
+			}
 		}
 
 		ToggleHighlightItem(NewItem, true);
