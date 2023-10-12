@@ -9,10 +9,10 @@
 #include "Components/InteractWidgetComponent.h"
 #include "Components/WidgetComponent.h"
 
-static TAutoConsoleVariable<bool> CVarDebugCrystalGather(
-	TEXT("StellarHarvest.Crystal.DebugCrystalGather"),
+static TAutoConsoleVariable<bool> CVarDebugCrystalCluster(
+	TEXT("StellarHarvest.Crystal.DebugCrystalCluster"),
 	false,
-	TEXT("Show debug info crystal gather status."),
+	TEXT("Show debug info crystal cluster status."),
 	ECVF_Default
 );
 
@@ -63,7 +63,7 @@ void ACrystal::OnFinishCrystals()
 
 void ACrystal::DrawDebugInfo() const
 {
-	if (CVarDebugCrystalGather->GetBool())
+	if (CVarDebugCrystalCluster->GetBool())
 	{
 		const FString DebugInfo = FString::Printf(TEXT("Crystals: %d\nTime To Harvest: %.2f | Current Harvest Time: %.2f\nRemaining Harvest Time: %.2f"),
 			CurrentAmountCrystal, TimeToHarvest, CurrentHarvestTime, GetRemainingHarvestTime());

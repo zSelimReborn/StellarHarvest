@@ -7,6 +7,13 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Gameplay/Interact/Crystal.h"
 
+static TAutoConsoleVariable<bool> CVarDebugCrystalCollector(
+	TEXT("StellarHarvest.Crystal.DebugCrystalCollector"),
+	false,
+	TEXT("Show debug info about crystal harvesting."),
+	ECVF_Default
+);
+
 // Sets default values for this component's properties
 UCrystalCollectorComponent::UCrystalCollectorComponent()
 {
@@ -79,11 +86,38 @@ void UCrystalCollectorComponent::StopAnimation() const
 	}
 }
 
+void UCrystalCollectorComponent::PrintDebugInfo() const
+{
+	if (CVarDebugCrystalCollector->GetBool() && GEngine && CurrentCrystalGather != nullptr)
+	{
+		int32 NumOfPortions = FMath::CeilToInt32<float>(CurrentCrystalGather->GetMaxAmountCrystals() / NumOfCrystalPerInterval);
+		// If it's not multiple, add an extra portion
+		if (CurrentCrystalGather->GetMaxAmountCrystals() % NumOfCrystalPerInterval != 0)
+		{
+			NumOfPortions += 1;
+		}
+
+		FString DebugInfo = FString::Printf(
+			TEXT("Crystal Collected: %d\nCrystals to collect: %d\nPortions: %d\nTotal Harvest Time: %.2f\nCurrent Harvest Time: %.2f\nHarvest Interval: %.2f\n"),
+			CrystalsCollected, CurrentCrystalGather->GetCrystalsAvailable(), NumOfPortions,
+			CurrentCrystalGather->GetTimeToHarvest(), CurrentHarvestTime, HarvestInterval
+		);
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			0.f,
+			FColor::Blue,
+			DebugInfo,
+			true
+		);
+	}
+}
+
 void UCrystalCollectorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TickHarvest(DeltaTime);
+	PrintDebugInfo();
 }
 
 void UCrystalCollectorComponent::StartHarvesting(ACrystal* CrystalGather)

@@ -31,6 +31,8 @@ protected:
 
 	void StopAnimation() const;
 
+	void PrintDebugInfo() const;
+
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
