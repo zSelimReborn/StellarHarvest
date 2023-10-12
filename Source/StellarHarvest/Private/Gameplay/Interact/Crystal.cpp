@@ -6,6 +6,7 @@
 #include "Components/CrystalCollectorComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/HighlightComponent.h"
+#include "Components/InteractWidgetComponent.h"
 #include "Components/WidgetComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDebugCrystalGather(
@@ -36,7 +37,7 @@ ACrystal::ACrystal()
 	BoxCollisionComponent->SetupAttachment(DefaultSceneComponent);
 	BoxCollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	InteractWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Interact Widget Component"));
+	InteractWidgetComponent = CreateDefaultSubobject<UInteractWidgetComponent>(TEXT("Interact Widget Component"));
 	InteractWidgetComponent->SetupAttachment(DefaultSceneComponent);
 
 	HighlightComponent = CreateDefaultSubobject<UHighlightComponent>(TEXT("Highlight Component"));

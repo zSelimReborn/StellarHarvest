@@ -9,7 +9,7 @@
 
 class UBoxComponent;
 class UHighlightComponent;
-class UWidgetComponent;
+class UInteractWidgetComponent;
 
 UCLASS()
 class STELLARHARVEST_API ACrystal : public AActor, public IInteractable
@@ -102,5 +102,5 @@ protected:
 	TObjectPtr<UHighlightComponent> HighlightComponent;
 
 	UPROPERTY(VisibleAnywhere, NoClear)
-	TObjectPtr<UWidgetComponent> InteractWidgetComponent;
+	TObjectPtr<UInteractWidgetComponent> InteractWidgetComponent;
 };
