@@ -110,7 +110,7 @@ void ATractorPlayerController::MoveUsingMouse()
 
 			if (DirectionToPointSquaredLength >= MinMouseDistanceSquared)
 			{
-				const float MovementRatio = CalculateMouseMovementRatio();
+				const float MovementRatio = (bScaleMovementBasedOnDistance)? CalculateMouseMovementRatio() : 1.f;
 				TractorRef->RequestMove(DirectionToPoint.GetSafeNormal(), MovementRatio);
 
 				if (CVarDebugMouseMove->GetBool())

@@ -55,6 +55,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Movement")
 	float MinMouseDistance = 100.f;
 
+	UPROPERTY(EditAnywhere, Category="Movement")
+	bool bScaleMovementBasedOnDistance = true;
+
 	UPROPERTY(Transient)
 	float MinMouseDistanceSquared;
 	
