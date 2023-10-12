@@ -4,7 +4,7 @@
 #include "Characters/StellarBaseCharacter.h"
 
 #include "Camera/CameraComponent.h"
-#include "..\..\Public\Components\SearchInteractableComponent.h"
+#include "Components/SearchInteractableComponent.h"
 #include "Components/HighlightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"

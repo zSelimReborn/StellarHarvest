@@ -3,7 +3,7 @@
 
 #include "Gameplay/Interact/Crystal.h"
 
-#include "Component/CrystalCollectorComponent.h"
+#include "Components/CrystalCollectorComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/HighlightComponent.h"
 #include "Components/WidgetComponent.h"

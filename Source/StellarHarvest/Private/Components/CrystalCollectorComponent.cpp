@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Component/CrystalCollectorComponent.h"
+#include "Components/CrystalCollectorComponent.h"
 
+#include "Components/TransformAnimComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "Gameplay/Interact/Crystal.h"
 
@@ -60,6 +61,24 @@ void UCrystalCollectorComponent::SetupTickHarvest()
 	SetComponentTickEnabled(true);
 }
 
+void UCrystalCollectorComponent::FireAnimation() const
+{
+	UTransformAnimComponent* AnimComponent = GetOwner()->FindComponentByClass<UTransformAnimComponent>();
+	if (AnimComponent)
+	{
+		AnimComponent->StartAnimation();
+	}
+}
+
+void UCrystalCollectorComponent::StopAnimation() const
+{
+	UTransformAnimComponent* AnimComponent = GetOwner()->FindComponentByClass<UTransformAnimComponent>();
+	if (AnimComponent)
+	{
+		AnimComponent->StopAnimation();
+	}
+}
+
 void UCrystalCollectorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction)
 {
@@ -89,6 +108,11 @@ void UCrystalCollectorComponent::StartHarvesting(ACrystal* CrystalGather)
 	{
 		SetupTickHarvest();
 	}
+
+	if (bFireAnimationDuringHarvest)
+	{
+		FireAnimation();
+	}
 }
 
 void UCrystalCollectorComponent::StopHarvesting()
@@ -99,6 +123,11 @@ void UCrystalCollectorComponent::StopHarvesting()
 	CurrentHarvestTime = 0.f;
 	EnableOwnerMovement();
 	SetComponentTickEnabled(false);
+	
+	if (bFireAnimationDuringHarvest)
+	{
+		StopAnimation();
+	}
 }
 
 void UCrystalCollectorComponent::FullHarvest()

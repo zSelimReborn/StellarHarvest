@@ -27,6 +27,10 @@ protected:
 
 	void SetupTickHarvest();
 
+	void FireAnimation() const;
+
+	void StopAnimation() const;
+
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
@@ -72,6 +76,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Harvest")
 	bool bDisableMovementDuringHarvest = true;
+
+	UPROPERTY(EditAnywhere, Category="Harvest")
+	bool bFireAnimationDuringHarvest = true;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACrystal> CurrentCrystalGather;
