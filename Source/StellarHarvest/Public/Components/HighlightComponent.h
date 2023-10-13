@@ -33,7 +33,10 @@ protected:
 
 // Component interface
 public:
+	UFUNCTION(BlueprintCallable)
 	void ActivateHighlight() const;
+
+	UFUNCTION(BlueprintCallable)
 	void DeactivateHighlight() const;
 
 	UFUNCTION(BlueprintCallable)

@@ -73,10 +73,7 @@ void AStellarBaseCharacter::RequestStartInteraction()
 {
 	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
 	{
-		if (IInteractable* Interactable = Cast<IInteractable>(SelectedInteractable))
-		{
-			Interactable->Execute_StartInteraction(SelectedInteractable, this);
-		}
+		IInteractable::Execute_StartInteraction(SelectedInteractable, this);
 	}
 }
 
@@ -84,10 +81,7 @@ void AStellarBaseCharacter::RequestFinishInteraction()
 {
 	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
 	{
-		if (IInteractable* Interactable = Cast<IInteractable>(SelectedInteractable))
-		{
-			Interactable->Execute_FinishInteraction(SelectedInteractable, this);
-		}
+		IInteractable::Execute_FinishInteraction(SelectedInteractable, this);
 	}
 }
 
@@ -137,10 +131,10 @@ void AStellarBaseCharacter::OnInteractableFound(const FHitResult& HitResult, AAc
 			ToggleHighlightItem(SelectedInteractable, false);
 			SelectedInteractable = nullptr;
 		}
-		
-		if (const IInteractable* TempInteractable = Cast<IInteractable>(NewItem))
+
+		if (NewItem->Implements<UInteractable>())
 		{
-			if (!TempInteractable->Execute_CanBeInteracted(NewItem, this))
+			if (!IInteractable::Execute_CanBeInteracted(NewItem, this))
 			{
 				return;
 			}
