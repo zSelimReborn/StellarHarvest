@@ -8,6 +8,7 @@
 #include "Components/HighlightComponent.h"
 #include "Components/InteractWidgetComponent.h"
 #include "Components/WidgetComponent.h"
+#include "UI/CrystalClusterWidget.h"
 
 static TAutoConsoleVariable<bool> CVarDebugCrystalCluster(
 	TEXT("StellarHarvest.Crystal.DebugCrystalCluster"),
@@ -40,6 +41,9 @@ ACrystal::ACrystal()
 	InteractWidgetComponent = CreateDefaultSubobject<UInteractWidgetComponent>(TEXT("Interact Widget Component"));
 	InteractWidgetComponent->SetupAttachment(DefaultSceneComponent);
 
+	InfoWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Info Widget Component"));
+	InfoWidgetComponent->SetupAttachment(DefaultSceneComponent);
+
 	HighlightComponent = CreateDefaultSubobject<UHighlightComponent>(TEXT("Highlight Component"));
 }
 
@@ -51,6 +55,11 @@ void ACrystal::BeginPlay()
 	CurrentAmountCrystal = MaxAmountCrystal;
 	HighlightComponent->SetMeshComponent(RockMeshComponent);
 	HighlightComponent->SetWidgetComponent(InteractWidgetComponent);
+	HighlightComponent->OnActivateHighlight().AddDynamic(this, &ACrystal::OnActivateHighlight);
+	HighlightComponent->OnDeactivateHighlight().AddDynamic(this, &ACrystal::OnDeactivateHighlight);
+
+	InfoWidgetComponent->SetVisibility(false);
+	SetupCrystalClusterWidget();
 }
 
 void ACrystal::OnFinishCrystals()
@@ -70,6 +79,18 @@ void ACrystal::DrawDebugInfo() const
 		const FVector CrystalLocation = GetActorLocation();
 		const FVector TextLocation = {CrystalLocation.X, CrystalLocation.Y, CrystalLocation.Z + 300.f};
 		DrawDebugString(GetWorld(), TextLocation, DebugInfo, nullptr, FColor::Black, 0.1f);
+	}
+}
+
+void ACrystal::SetupCrystalClusterWidget()
+{
+	if (InfoWidgetComponent != nullptr)
+	{
+		CrystalClusterWidgetRef = Cast<UCrystalClusterWidget>(InfoWidgetComponent->GetWidget());
+		if (CrystalClusterWidgetRef != nullptr)
+		{
+			CrystalClusterWidgetRef->OnInitializeProperties(this, MaxAmountCrystal, TimeToHarvest);
+		}
 	}
 }
 
@@ -105,6 +126,10 @@ void ACrystal::StartInteraction_Implementation(AActor* ActorInteracting)
 	CurrentHarvestingActor = ActorInteracting;
 	bSomeoneHarvesting = true;
 	CrystalCollectorComponent->StartHarvesting(this);
+	if (CrystalClusterWidgetRef != nullptr)
+	{
+		CrystalClusterWidgetRef->OnStartHarvesting(ActorInteracting);
+	}
 }
 
 void ACrystal::FinishInteraction_Implementation(AActor* ActorInteracting)
@@ -123,6 +148,10 @@ void ACrystal::FinishInteraction_Implementation(AActor* ActorInteracting)
 	CrystalCollectorComponent->StopHarvesting();
 	CurrentHarvestingActor = nullptr;
 	bSomeoneHarvesting = false;
+	if (CrystalClusterWidgetRef != nullptr)
+	{
+		CrystalClusterWidgetRef->OnStopHarvesting(ActorInteracting);
+	}
 }
 
 bool ACrystal::CanBeInteracted_Implementation(AActor* ActorInteracting) const
@@ -140,6 +169,11 @@ int32 ACrystal::Harvest(const int32 RequestedCrystals)
 	{
 		OnFinishCrystals();
 	}
+
+	if (CrystalClusterWidgetRef != nullptr)
+	{
+		CrystalClusterWidgetRef->OnHarvestCrystals(CollectedCrystals, CurrentAmountCrystal);
+	}
 	
 	return CollectedCrystals;
 }
@@ -147,5 +181,15 @@ int32 ACrystal::Harvest(const int32 RequestedCrystals)
 void ACrystal::AddHarvestTime(const float DeltaTime)
 {
 	CurrentHarvestTime = FMath::Clamp(CurrentHarvestTime + DeltaTime, 0.f, TimeToHarvest);
+}
+
+void ACrystal::OnActivateHighlight()
+{
+	InfoWidgetComponent->SetVisibility(true);
+}
+
+void ACrystal::OnDeactivateHighlight()
+{
+	InfoWidgetComponent->SetVisibility(false);
 }
 

@@ -8,6 +8,9 @@
 
 class UWidgetComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnActivateHighlightDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeactivateHighlightDelegate);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip="Give player visual feedback enabling custom depth and custom widget on owner.") )
 class STELLARHARVEST_API UHighlightComponent : public UActorComponent
 {
@@ -44,6 +47,11 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE UWidgetComponent* GetWidgetComponent() const { return WidgetComponent; }
+
+// Events
+public:
+	FORCEINLINE FOnActivateHighlightDelegate& OnActivateHighlight() { return OnActivateHighlightDelegate; }
+	FORCEINLINE FOnDeactivateHighlightDelegate& OnDeactivateHighlight() { return OnDeactivateHighlightDelegate; }
 	
 // Properties
 protected:
@@ -59,4 +67,8 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UWidgetComponent> WidgetComponent;
 
+// Delegates
+protected:
+	FOnActivateHighlightDelegate OnActivateHighlightDelegate;
+	FOnDeactivateHighlightDelegate OnDeactivateHighlightDelegate;
 };

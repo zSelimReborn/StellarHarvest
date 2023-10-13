@@ -73,6 +73,8 @@ void UHighlightComponent::ActivateHighlight() const
 	{
 		ShowWidget();
 	}
+
+	OnActivateHighlightDelegate.Broadcast();
 }
 
 void UHighlightComponent::DeactivateHighlight() const
@@ -86,6 +88,8 @@ void UHighlightComponent::DeactivateHighlight() const
 	{
 		HideWidget();
 	}
+
+	OnDeactivateHighlightDelegate.Broadcast();
 }
 
 void UHighlightComponent::SetMeshComponent(UPrimitiveComponent* NewMeshComponent)

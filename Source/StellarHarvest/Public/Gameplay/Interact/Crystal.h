@@ -9,7 +9,9 @@
 
 class UBoxComponent;
 class UHighlightComponent;
+class UWidgetComponent;
 class UInteractWidgetComponent;
+class UCrystalClusterWidget;
 
 UCLASS()
 class STELLARHARVEST_API ACrystal : public AActor, public IInteractable
@@ -25,7 +27,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	void OnFinishCrystals();
+	
 	void DrawDebugInfo() const;
+
+	void SetupCrystalClusterWidget();
 
 public:	
 	// Called every frame
@@ -63,6 +68,14 @@ public:
 	FORCEINLINE float GetRemainingHarvestTime() const { return TimeToHarvest - CurrentHarvestTime; }
 
 	void AddHarvestTime(const float);
+
+// Callbacks
+protected:
+	UFUNCTION()
+	void OnActivateHighlight();
+
+	UFUNCTION()
+	void OnDeactivateHighlight();
 	
 // Properties
 protected:
@@ -83,6 +96,9 @@ protected:
 
 	UPROPERTY(Transient)
 	bool bSomeoneHarvesting = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UCrystalClusterWidget> CrystalClusterWidgetRef;
 	
 // Components
 protected:
@@ -103,4 +119,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, NoClear)
 	TObjectPtr<UInteractWidgetComponent> InteractWidgetComponent;
+
+	UPROPERTY(VisibleAnywhere, NoClear)
+	TObjectPtr<UWidgetComponent> InfoWidgetComponent;
 };
