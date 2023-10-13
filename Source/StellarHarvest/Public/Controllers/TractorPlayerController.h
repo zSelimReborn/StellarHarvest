@@ -43,6 +43,12 @@ protected:
 	void InitializeHUD();
 	float CalculateMouseMovementRatio() const;
 	void MoveUsingMouse();
+	void SetupEvents();
+
+// Callbacks
+protected:
+	UFUNCTION()
+	void OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals);
 	
 // Properties
 protected:

@@ -8,6 +8,12 @@
 
 class ACrystal;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnCollectCrystalsDelegate,
+	const int32, CollectedCrystals,
+	const int32, TotalCrystals
+);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UCrystalCollectorComponent : public UActorComponent
 {
@@ -59,6 +65,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DisableOwnerMovement();
 
+// Events
+public:
+	FORCEINLINE FOnCollectCrystalsDelegate& OnCollectCrystals() { return OnCollectCrystalsDelegate; }
+
 // Properties
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Harvest")
@@ -86,4 +96,8 @@ protected:
 	TObjectPtr<ACrystal> CurrentCrystalGather;
 
 	FTimerHandle HarvestCrystalTimerHandle;
+
+// Delegates
+protected:
+	FOnCollectCrystalsDelegate OnCollectCrystalsDelegate;
 };

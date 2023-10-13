@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "UI/TractorHud.h"
 #include "Characters/StellarBaseCharacter.h"
+#include "Components/CrystalCollectorComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDebugMouseMove(
 	TEXT("StellarHarvest.Tractor.DebugMouseMove"),
@@ -29,6 +30,7 @@ void ATractorPlayerController::OnPossess(APawn* InPawn)
 
 	TractorRef = Cast<AStellarBaseCharacter>(InPawn);
 	InitializeHUD();
+	SetupEvents();
 }
 
 void ATractorPlayerController::SetupInputComponent()
@@ -131,6 +133,23 @@ void ATractorPlayerController::MoveUsingMouse()
 				DrawDebugDirectionalArrow(GetWorld(), GetPawn()->GetActorLocation(), ImpactLocation, 5.f, FColor::Blue, false, 0.3f);
 			}
 		}
+	}
+}
+
+void ATractorPlayerController::SetupEvents()
+{
+	UCrystalCollectorComponent* CrystalCollectorComponent = GetPawn()->FindComponentByClass<UCrystalCollectorComponent>();
+	if (CrystalCollectorComponent)
+	{
+		CrystalCollectorComponent->OnCollectCrystals().AddDynamic(this, &ATractorPlayerController::OnCollectCrystals);
+	}
+}
+
+void ATractorPlayerController::OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnCollectCrystals(CollectedCrystals, TotalCrystals);
 	}
 }
 

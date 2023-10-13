@@ -17,4 +17,7 @@ class STELLARHARVEST_API UTractorHud : public UUserWidget
 public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void InitializeWidget(const APlayerController* OwnerController);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals);
 };

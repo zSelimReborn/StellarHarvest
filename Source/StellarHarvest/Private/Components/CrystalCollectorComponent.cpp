@@ -31,8 +31,7 @@ void UCrystalCollectorComponent::BeginPlay()
 void UCrystalCollectorComponent::AddCrystals(const int32 NewCrystals)
 {
 	CrystalsCollected += NewCrystals;
-	UE_LOG(LogTemp, Error, TEXT("%s has %d crystals"), *GetOwner()->GetActorLabel(), CrystalsCollected);
-	// TODO Dispatch events
+	OnCollectCrystalsDelegate.Broadcast(NewCrystals, CrystalsCollected);
 }
 
 void UCrystalCollectorComponent::TickHarvest(const float DeltaTime)
@@ -61,7 +60,7 @@ void UCrystalCollectorComponent::SetupTickHarvest()
 	{
 		NumOfPortions += 1;
 	}
-		
+	
 	HarvestInterval = CurrentCrystalGather->GetTimeToHarvest() / NumOfPortions;
 	const int32 CurrentPortion = CurrentCrystalGather->GetCurrentHarvestTime() / HarvestInterval;
 	CurrentHarvestTime = CurrentCrystalGather->GetCurrentHarvestTime() - (CurrentPortion * HarvestInterval);
