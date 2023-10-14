@@ -26,6 +26,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void PostInitializeComponents() override;
+
 	void OnFinishCrystals();
 	
 	void DrawDebugInfo() const;
@@ -105,21 +107,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, NoClear)
 	TObjectPtr<USceneComponent> DefaultSceneComponent;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, NoClear)
 	TObjectPtr<UStaticMeshComponent> RockMeshComponent;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, NoClear)
 	TObjectPtr<UStaticMeshComponent> CrystalMeshComponent;
 
 	UPROPERTY(VisibleAnywhere, NoClear)
 	TObjectPtr<UBoxComponent> BoxCollisionComponent;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, NoClear)
 	TObjectPtr<UHighlightComponent> HighlightComponent;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, NoClear)
 	TObjectPtr<UInteractWidgetComponent> InteractWidgetComponent;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, NoClear)
 	TObjectPtr<UWidgetComponent> InfoWidgetComponent;
 };

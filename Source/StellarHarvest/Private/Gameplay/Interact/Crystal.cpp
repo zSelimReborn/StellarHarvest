@@ -51,7 +51,12 @@ ACrystal::ACrystal()
 void ACrystal::BeginPlay()
 {
 	Super::BeginPlay();
+	SetupCrystalClusterWidget();
+}
 
+void ACrystal::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 	CurrentAmountCrystal = MaxAmountCrystal;
 	HighlightComponent->SetMeshComponent(RockMeshComponent);
 	HighlightComponent->SetWidgetComponent(InteractWidgetComponent);
@@ -59,7 +64,6 @@ void ACrystal::BeginPlay()
 	HighlightComponent->OnDeactivateHighlight().AddDynamic(this, &ACrystal::OnDeactivateHighlight);
 
 	InfoWidgetComponent->SetVisibility(false);
-	SetupCrystalClusterWidget();
 }
 
 void ACrystal::OnFinishCrystals()
