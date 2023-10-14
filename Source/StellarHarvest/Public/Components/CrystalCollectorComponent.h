@@ -39,13 +39,15 @@ protected:
 
 	void PrintDebugInfo() const;
 
+	void CheckClusterIsInRange();
+
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 // Public interface
 public:
 	UFUNCTION(BlueprintCallable)
-	void StartHarvesting(ACrystal* CrystalGather);
+	void StartHarvesting(ACrystal* CrystalCluster);
 
 	UFUNCTION(BlueprintCallable)
 	void StopHarvesting();
@@ -64,6 +66,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DisableOwnerMovement();
+
+	UFUNCTION(BlueprintCallable)
+	bool ClusterIsInRange(const ACrystal* CrystalCluster) const;
 
 // Events
 public:
@@ -88,6 +93,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Harvest")
 	bool bDisableMovementDuringHarvest = true;
+
+	UPROPERTY(EditAnywhere, Category="Harvest", meta=(EditCondition="!bDisableMovementDuringHarvest"))
+	float DistanceToHarvest = 150.f;
+
+	UPROPERTY(Transient)
+	float DistanceSquaredToHarvest = 0.f;
 
 	UPROPERTY(EditAnywhere, Category="Harvest")
 	bool bFireAnimationDuringHarvest = true;

@@ -26,6 +26,7 @@ void UCrystalCollectorComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	SetComponentTickEnabled(false);
+	DistanceSquaredToHarvest = DistanceToHarvest * DistanceToHarvest;
 }
 
 void UCrystalCollectorComponent::AddCrystals(const int32 NewCrystals)
@@ -64,7 +65,6 @@ void UCrystalCollectorComponent::SetupTickHarvest()
 	HarvestInterval = CurrentCrystalGather->GetTimeToHarvest() / NumOfPortions;
 	const int32 CurrentPortion = CurrentCrystalGather->GetCurrentHarvestTime() / HarvestInterval;
 	CurrentHarvestTime = CurrentCrystalGather->GetCurrentHarvestTime() - (CurrentPortion * HarvestInterval);
-	SetComponentTickEnabled(true);
 }
 
 void UCrystalCollectorComponent::FireAnimation() const
@@ -111,28 +111,43 @@ void UCrystalCollectorComponent::PrintDebugInfo() const
 	}
 }
 
+void UCrystalCollectorComponent::CheckClusterIsInRange()
+{
+	if (!bDisableMovementDuringHarvest && CurrentCrystalGather != nullptr)
+	{
+		if (!ClusterIsInRange(CurrentCrystalGather))
+		{
+			// To improve this call
+			IInteractable::Execute_FinishInteraction(CurrentCrystalGather, GetOwner());
+			StopHarvesting();
+		}
+	}
+}
+
 void UCrystalCollectorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TickHarvest(DeltaTime);
 	PrintDebugInfo();
+	CheckClusterIsInRange();
 }
 
-void UCrystalCollectorComponent::StartHarvesting(ACrystal* CrystalGather)
+void UCrystalCollectorComponent::StartHarvesting(ACrystal* CrystalCluster)
 {
-	if (CrystalGather == nullptr)
+	if (CrystalCluster == nullptr)
 	{
 		return;
 	}
 
-	CurrentCrystalGather = CrystalGather;
+	CurrentCrystalGather = CrystalCluster;
 	if (bDisableMovementDuringHarvest)
 	{
 		DisableOwnerMovement();
 	}
 
-	const float RemainingHarvestTime = CrystalGather->GetRemainingHarvestTime();
+	const float RemainingHarvestTime = CrystalCluster->GetRemainingHarvestTime();
+	SetComponentTickEnabled(true);
 	if (bOneShotHarvest)
 	{
 		GetOwner()->GetWorldTimerManager().SetTimer(HarvestCrystalTimerHandle, this, &UCrystalCollectorComponent::FullHarvest, RemainingHarvestTime, false);
@@ -201,5 +216,18 @@ void UCrystalCollectorComponent::DisableOwnerMovement()
 	{
 		PawnOwner->GetMovementComponent()->SetActive(false);
 	}
+}
+
+bool UCrystalCollectorComponent::ClusterIsInRange(const ACrystal* CrystalCluster) const
+{
+	if (CrystalCluster == nullptr)
+	{
+		return false;
+	}
+	
+	const FVector OwnerLocation = GetOwner()->GetActorLocation();
+	const FVector ClusterLocation = CrystalCluster->GetActorLocation();
+	UE_LOG(LogTemp, Error, TEXT("Distance: %.2f | Range: %.2f"), FVector::DistSquared(OwnerLocation, ClusterLocation), DistanceSquaredToHarvest);
+	return FVector::DistSquared(OwnerLocation, ClusterLocation) <= DistanceSquaredToHarvest;
 }
 

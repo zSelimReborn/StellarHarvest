@@ -160,8 +160,13 @@ void ACrystal::FinishInteraction_Implementation(AActor* ActorInteracting)
 
 bool ACrystal::CanBeInteracted_Implementation(AActor* ActorInteracting) const
 {
-	// TODO Could also check if actor has crystal collector component
-	return HasCrystals();
+	if (ActorInteracting == nullptr)
+	{
+		return false;
+	}
+
+	UCrystalCollectorComponent* CrystalCollectorComponent = ActorInteracting->FindComponentByClass<UCrystalCollectorComponent>();
+	return HasCrystals() && CrystalCollectorComponent != nullptr;
 }
 
 int32 ACrystal::Harvest(const int32 RequestedCrystals)
