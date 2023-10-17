@@ -51,16 +51,10 @@ protected:
 
 // Components
 protected:
-	UPROPERTY(VisibleAnywhere, NoClear)
-	TObjectPtr<UStaticMeshComponent> TractorBodyComponent;
-
-	UPROPERTY(VisibleAnywhere, NoClear)
-	TObjectPtr<UStaticMeshComponent> TractorDrillComponent;
-
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, NoClear)
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	TObjectPtr<UCameraComponent> CameraComponent;
 
 	UPROPERTY()

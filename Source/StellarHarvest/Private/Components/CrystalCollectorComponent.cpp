@@ -227,7 +227,6 @@ bool UCrystalCollectorComponent::ClusterIsInRange(const ACrystal* CrystalCluster
 	
 	const FVector OwnerLocation = GetOwner()->GetActorLocation();
 	const FVector ClusterLocation = CrystalCluster->GetActorLocation();
-	UE_LOG(LogTemp, Error, TEXT("Distance: %.2f | Range: %.2f"), FVector::DistSquared(OwnerLocation, ClusterLocation), DistanceSquaredToHarvest);
 	return FVector::DistSquared(OwnerLocation, ClusterLocation) <= DistanceSquaredToHarvest;
 }
 
