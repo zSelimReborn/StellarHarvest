@@ -45,6 +45,11 @@ bool UAITargetComponent::IsFriendly(const AActor* TestingActor) const
 	ensure(OwnerController != nullptr);
 
 	const UAffiliationComponent* AffiliationComponent = OwnerController->GetPawn()->FindComponentByClass<UAffiliationComponent>();
+	if (AffiliationComponent == nullptr)
+	{
+		return false;
+	}
+	
 	return AffiliationComponent->IsFriendly(TestingActor);
 }
 
@@ -52,12 +57,16 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 {
 	ensure(OwnerController != nullptr);
 	
-	bIsTrackingTarget = Stimulus.WasSuccessfullySensed();
+	const bool bIsTrackingTarget = Stimulus.WasSuccessfullySensed();
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, bIsTrackingTarget);
-
+	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasLastKnownTargetLocationBlackboardKey, !bIsTrackingTarget);
+	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, SourceActor);
+	TargetRef = SourceActor;
+	State = (bIsTrackingTarget)? ETargetingState::ETS_Tracking : ETargetingState::ETS_Searching;
+	
 	if (!bIsTrackingTarget)
 	{
-		OwnerController->GetBlackboardComponent()->SetValueAsVector(LastKnownTargetLocationBlackboardKey, SourceActor->GetActorLocation());
+		OwnerController->GetBlackboardComponent()->SetValueAsVector(LastKnownTargetLocationBlackboardKey, LastKnownLocation);
 	}
 }
 
@@ -65,15 +74,34 @@ void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& 
 {
 }
 
-void UAITargetComponent::TrackTarget() const
+void UAITargetComponent::TrackTarget()
 {
 	ensure(OwnerController != nullptr);
 	
-	if (bIsTrackingTarget && TargetRef != nullptr)
+	if (State == ETargetingState::ETS_Tracking && TargetRef != nullptr)
 	{
 		const float DistanceToTarget = FVector::Dist(OwnerController->GetPawn()->GetActorLocation(), TargetRef->GetActorLocation());
 		OwnerController->GetBlackboardComponent()->SetValueAsVector(TargetLocationBlackboardKey, TargetRef->GetActorLocation());
 		OwnerController->GetBlackboardComponent()->SetValueAsFloat(TargetDistanceBlackboardKey, DistanceToTarget);
+		LastKnownLocation = TargetRef->GetActorLocation();
+	}
+}
+
+void UAITargetComponent::CheckLastKnownLocation(const float DeltaTime)
+{
+	ensure(OwnerController != nullptr);
+
+	if (State == ETargetingState::ETS_Searching)
+	{
+		// Extra for safety
+		CurrentTimeCheckingLastKnownLocation = FMath::Clamp(CurrentTimeCheckingLastKnownLocation + DeltaTime, 0.f, MaxTimeToCheckLastKnownLocation);
+		const FVector PawnLocation = OwnerController->GetPawn()->GetActorLocation();
+		if (FVector::DistSquaredXY(PawnLocation, LastKnownLocation) <= 100.f || CurrentTimeCheckingLastKnownLocation >= MaxTimeToCheckLastKnownLocation)
+		{
+			OwnerController->GetBlackboardComponent()->SetValueAsBool(HasLastKnownTargetLocationBlackboardKey, false);
+			State = ETargetingState::ETS_Default;
+			CurrentTimeCheckingLastKnownLocation = 0.f;
+		}
 	}
 }
 
@@ -82,6 +110,7 @@ void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	TrackTarget();
+	CheckLastKnownLocation(DeltaTime);
 }
 
 void UAITargetComponent::StartSearch()

@@ -10,6 +10,16 @@ class UAISense;
 struct FAIStimulus;
 class AAIController;
 
+UENUM(BlueprintType)
+enum class ETargetingState : uint8
+{
+	ETS_Default			UMETA(DisplayName="Default"),
+	ETS_Tracking		UMETA(DisplayName="Tracking Target"),
+	ETS_Searching		UMETA(DisplayName="Searching Last Position"),
+	ETS_Investigating	UMETA(DisplayName="Investigating"),
+	ETS_MAX
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UAITargetComponent : public UActorComponent
 {
@@ -35,7 +45,9 @@ protected:
 	
 	void OnHearStimulus(AActor* SourceActor, const FAIStimulus& Stimulus);
 
-	void TrackTarget() const;
+	void TrackTarget();
+
+	void CheckLastKnownLocation(const float);
 	
 public:	
 	// Called every frame
@@ -64,8 +76,14 @@ protected:
 	FName HasTargetBlackboardKey;
 
 	UPROPERTY(EditAnywhere, Category="Targeting")
+    FName TargetObjectBlackboardKey;
+
+	UPROPERTY(EditAnywhere, Category="Targeting")
 	FName TargetLocationBlackboardKey;
 
+	UPROPERTY(EditAnywhere, Category="Targeting")
+	FName HasLastKnownTargetLocationBlackboardKey;
+	
 	UPROPERTY(EditAnywhere, Category="Targeting")
 	FName LastKnownTargetLocationBlackboardKey;
 	
@@ -73,7 +91,7 @@ protected:
 	FName TargetDistanceBlackboardKey;
 
 	UPROPERTY(EditAnywhere, Category="Targeting")
-	bool bCheckIfVisibleOnScreen = false;
+	float MaxTimeToCheckLastKnownLocation = 5.f;
 
 	UPROPERTY(EditAnywhere, Category="Patrolling")
 	FName CanPatrolBlackboardKey;
@@ -84,8 +102,14 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AAIController> OwnerController;
 
+	UPROPERTY(VisibleAnywhere, Category="Targeting")
+	ETargetingState State = ETargetingState::ETS_Default;
+
 	UPROPERTY(Transient)
-	bool bIsTrackingTarget = false;
+	FVector LastKnownLocation = FVector::ZeroVector;
+
+	UPROPERTY(Transient)
+	float CurrentTimeCheckingLastKnownLocation = 0.f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> TargetRef = nullptr;
