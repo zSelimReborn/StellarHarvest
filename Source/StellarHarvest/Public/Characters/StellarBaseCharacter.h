@@ -28,12 +28,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostInitializeComponents() override;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 // Movement interface
 public:
 	void RequestMove(const FVector2D&);
 	void RequestMove(const FVector&, const float);
+	
 	void RequestStartInteraction();
 	void RequestFinishInteraction();
+	
+	void RequestSprint() const;
+	void RequestWalk() const;
 	
 // Helpers
 protected:
@@ -62,6 +68,12 @@ protected:
 
 // Properties
 protected:
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float SprintSpeed = 2000.f;
+
+	UPROPERTY(Transient)
+	float InitialWalkSpeed;
+	
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> SelectedInteractable;
 };

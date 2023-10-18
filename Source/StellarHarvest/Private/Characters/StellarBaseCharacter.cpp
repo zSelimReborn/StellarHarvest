@@ -30,7 +30,8 @@ AStellarBaseCharacter::AStellarBaseCharacter()
 void AStellarBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	InitialWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 // Called every frame
@@ -45,6 +46,19 @@ void AStellarBaseCharacter::PostInitializeComponents()
 
 	SearchItemsComponent = FindComponentByClass<USearchInteractableComponent>();
 	InitializeObservers();
+}
+
+float AStellarBaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+	AController* EventInstigator, AActor* DamageCauser)
+{
+	DamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	APlayerController* PC = GetController<APlayerController>();
+	if (PC != nullptr)
+	{
+		PC->RestartLevel();
+	}
+	
+	return DamageAmount;
 }
 
 void AStellarBaseCharacter::RequestMove(const FVector2D& AxisRatio)
@@ -83,6 +97,16 @@ void AStellarBaseCharacter::RequestFinishInteraction()
 	{
 		IInteractable::Execute_FinishInteraction(SelectedInteractable, this);
 	}
+}
+
+void AStellarBaseCharacter::RequestSprint() const
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+}
+
+void AStellarBaseCharacter::RequestWalk() const
+{
+	GetCharacterMovement()->MaxWalkSpeed = InitialWalkSpeed;
 }
 
 FRotator AStellarBaseCharacter::GetActualViewRotation() const
