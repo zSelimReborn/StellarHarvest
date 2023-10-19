@@ -109,8 +109,7 @@ void UAITargetComponent::Investigate(const float DeltaTime)
 	{
 		// Extra for safety
 		CurrentTimeInvestigation = FMath::Clamp(CurrentTimeInvestigation + DeltaTime, 0.f, MaxTimeInvestigation);
-		const FVector PawnLocation = OwnerController->GetPawn()->GetActorLocation();
-		if (FVector::DistSquaredXY(PawnLocation, LastKnownLocation) <= 100.f || CurrentTimeInvestigation >= MaxTimeInvestigation)
+		if (OwnerController->GetPawn()->GetVelocity().IsNearlyZero() || CurrentTimeInvestigation >= MaxTimeInvestigation)
 		{
 			OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, false);
 			State = ETargetingState::ETS_Default;
