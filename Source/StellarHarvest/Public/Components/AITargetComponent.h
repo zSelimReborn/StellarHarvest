@@ -15,7 +15,6 @@ enum class ETargetingState : uint8
 {
 	ETS_Default			UMETA(DisplayName="Default"),
 	ETS_Tracking		UMETA(DisplayName="Tracking Target"),
-	ETS_Searching		UMETA(DisplayName="Searching Last Position"),
 	ETS_Investigating	UMETA(DisplayName="Investigating"),
 	ETS_MAX
 };
@@ -47,7 +46,7 @@ protected:
 
 	void TrackTarget();
 
-	void CheckLastKnownLocation(const float);
+	void Investigate(const float);
 	
 public:	
 	// Called every frame
@@ -80,24 +79,18 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Targeting")
 	FName TargetLocationBlackboardKey;
-
-	UPROPERTY(EditAnywhere, Category="Targeting")
-	FName HasLastKnownTargetLocationBlackboardKey;
-	
-	UPROPERTY(EditAnywhere, Category="Targeting")
-	FName LastKnownTargetLocationBlackboardKey;
 	
 	UPROPERTY(EditAnywhere, Category="Targeting")
 	FName TargetDistanceBlackboardKey;
+	
+	UPROPERTY(EditAnywhere, Category="Investigating")
+	FName IsInvestigatingBlackboardKey;
 
-	UPROPERTY(EditAnywhere, Category="Targeting")
-	float MaxTimeToCheckLastKnownLocation = 5.f;
+	UPROPERTY(EditAnywhere, Category="Investigating")
+	FName InvestigationLocationBlackboardKey;
 
-	UPROPERTY(EditAnywhere, Category="Patrolling")
-	FName CanPatrolBlackboardKey;
-
-	UPROPERTY(EditAnywhere, Category="Patrolling")
-	FName PatrolLocationBlackboardKey;
+	UPROPERTY(EditAnywhere, Category="Investigating")
+	float MaxTimeInvestigation = 5.f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AAIController> OwnerController;
@@ -109,7 +102,7 @@ protected:
 	FVector LastKnownLocation = FVector::ZeroVector;
 
 	UPROPERTY(Transient)
-	float CurrentTimeCheckingLastKnownLocation = 0.f;
+	float CurrentTimeInvestigation = 0.f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> TargetRef = nullptr;

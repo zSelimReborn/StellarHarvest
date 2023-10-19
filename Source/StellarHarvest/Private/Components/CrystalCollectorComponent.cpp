@@ -6,6 +6,9 @@
 #include "Components/TransformAnimComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "Gameplay/Interact/Crystal.h"
+#include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Hearing.h"
+#include "Sound/SoundCue.h"
 
 static TAutoConsoleVariable<bool> CVarDebugCrystalCollector(
 	TEXT("StellarHarvest.Crystal.DebugCrystalCollector"),
@@ -33,6 +36,7 @@ void UCrystalCollectorComponent::AddCrystals(const int32 NewCrystals)
 {
 	CrystalsCollected += NewCrystals;
 	OnCollectCrystalsDelegate.Broadcast(NewCrystals, CrystalsCollected);
+	PlayHarvestSound();
 }
 
 void UCrystalCollectorComponent::TickHarvest(const float DeltaTime)
@@ -228,5 +232,26 @@ bool UCrystalCollectorComponent::ClusterIsInRange(const ACrystal* CrystalCluster
 	const FVector OwnerLocation = GetOwner()->GetActorLocation();
 	const FVector ClusterLocation = CrystalCluster->GetActorLocation();
 	return FVector::DistSquared(OwnerLocation, ClusterLocation) <= DistanceSquaredToHarvest;
+}
+
+void UCrystalCollectorComponent::PlayHarvestSound()
+{
+	if (HarvestSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			HarvestSound,
+			GetOwner()->GetActorLocation(),
+			FRotator::ZeroRotator
+		);
+	}
+
+	UAISense_Hearing::ReportNoiseEvent(
+		GetWorld(),
+		GetOwner()->GetActorLocation(),
+		1.f,
+		GetOwner(),
+		HarvestSoundRange
+	);
 }
 

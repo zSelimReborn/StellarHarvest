@@ -59,19 +59,33 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	
 	const bool bIsTrackingTarget = Stimulus.WasSuccessfullySensed();
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, bIsTrackingTarget);
-	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasLastKnownTargetLocationBlackboardKey, !bIsTrackingTarget);
+	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, !bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, SourceActor);
 	TargetRef = SourceActor;
-	State = (bIsTrackingTarget)? ETargetingState::ETS_Tracking : ETargetingState::ETS_Searching;
+	State = (bIsTrackingTarget)? ETargetingState::ETS_Tracking : ETargetingState::ETS_Investigating;
 	
 	if (!bIsTrackingTarget)
 	{
-		OwnerController->GetBlackboardComponent()->SetValueAsVector(LastKnownTargetLocationBlackboardKey, LastKnownLocation);
+		CurrentTimeInvestigation = 0.f;
+		OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, LastKnownLocation);
 	}
 }
 
 void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& Stimulus)
 {
+	ensure(OwnerController != nullptr);
+
+	// If we currently have a target, skip investigation
+	if (TargetRef != nullptr)
+	{
+		return;
+	}
+	
+	const bool bIsInvestigating = Stimulus.WasSuccessfullySensed();
+	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, bIsInvestigating);
+	OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, Stimulus.StimulusLocation);
+	State = (bIsInvestigating)? ETargetingState::ETS_Investigating : ETargetingState::ETS_Default;
+	CurrentTimeInvestigation = (bIsInvestigating)? 0.f : CurrentTimeInvestigation;
 }
 
 void UAITargetComponent::TrackTarget()
@@ -87,20 +101,20 @@ void UAITargetComponent::TrackTarget()
 	}
 }
 
-void UAITargetComponent::CheckLastKnownLocation(const float DeltaTime)
+void UAITargetComponent::Investigate(const float DeltaTime)
 {
 	ensure(OwnerController != nullptr);
 
-	if (State == ETargetingState::ETS_Searching)
+	if (State == ETargetingState::ETS_Investigating)
 	{
 		// Extra for safety
-		CurrentTimeCheckingLastKnownLocation = FMath::Clamp(CurrentTimeCheckingLastKnownLocation + DeltaTime, 0.f, MaxTimeToCheckLastKnownLocation);
+		CurrentTimeInvestigation = FMath::Clamp(CurrentTimeInvestigation + DeltaTime, 0.f, MaxTimeInvestigation);
 		const FVector PawnLocation = OwnerController->GetPawn()->GetActorLocation();
-		if (FVector::DistSquaredXY(PawnLocation, LastKnownLocation) <= 100.f || CurrentTimeCheckingLastKnownLocation >= MaxTimeToCheckLastKnownLocation)
+		if (FVector::DistSquaredXY(PawnLocation, LastKnownLocation) <= 100.f || CurrentTimeInvestigation >= MaxTimeInvestigation)
 		{
-			OwnerController->GetBlackboardComponent()->SetValueAsBool(HasLastKnownTargetLocationBlackboardKey, false);
+			OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, false);
 			State = ETargetingState::ETS_Default;
-			CurrentTimeCheckingLastKnownLocation = 0.f;
+			CurrentTimeInvestigation = 0.f;
 		}
 	}
 }
@@ -110,7 +124,7 @@ void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	TrackTarget();
-	CheckLastKnownLocation(DeltaTime);
+	Investigate(DeltaTime);
 }
 
 void UAITargetComponent::StartSearch()

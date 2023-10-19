@@ -70,6 +70,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool ClusterIsInRange(const ACrystal* CrystalCluster) const;
 
+	UFUNCTION(BlueprintCallable)
+	void PlayHarvestSound();
+
 // Events
 public:
 	FORCEINLINE FOnCollectCrystalsDelegate& OnCollectCrystals() { return OnCollectCrystalsDelegate; }
@@ -102,6 +105,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Harvest")
 	bool bFireAnimationDuringHarvest = true;
+
+	UPROPERTY(EditAnywhere, Category="Hearing")
+	TObjectPtr<USoundCue> HarvestSound;
+
+	UPROPERTY(EditAnywhere, Category="Hearing")
+	float HarvestSoundRange = 500.f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACrystal> CurrentCrystalGather;
