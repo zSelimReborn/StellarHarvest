@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/AffiliationComponent.h"
+#include "Components/AIPatrolMovementComponent.h"
 
 UAITargetComponent::UAITargetComponent()
 {
@@ -68,7 +69,10 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	{
 		CurrentTimeInvestigation = 0.f;
 		OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, LastKnownLocation);
+		TargetRef = nullptr;
 	}
+
+	StopPatrolling();
 }
 
 void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& Stimulus)
@@ -84,8 +88,17 @@ void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& 
 	const bool bIsInvestigating = Stimulus.WasSuccessfullySensed();
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, bIsInvestigating);
 	OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, Stimulus.StimulusLocation);
-	State = (bIsInvestigating)? ETargetingState::ETS_Investigating : ETargetingState::ETS_Default;
-	CurrentTimeInvestigation = (bIsInvestigating)? 0.f : CurrentTimeInvestigation;
+
+	if (bIsInvestigating)
+	{
+		StopPatrolling();
+		State = ETargetingState::ETS_Investigating;
+		CurrentTimeInvestigation = 0.f;
+	}
+	else
+	{
+		State = ETargetingState::ETS_Default;
+	}
 }
 
 void UAITargetComponent::TrackTarget()
@@ -109,13 +122,27 @@ void UAITargetComponent::Investigate(const float DeltaTime)
 	{
 		// Extra for safety
 		CurrentTimeInvestigation = FMath::Clamp(CurrentTimeInvestigation + DeltaTime, 0.f, MaxTimeInvestigation);
-		if (OwnerController->GetPawn()->GetVelocity().IsNearlyZero() || CurrentTimeInvestigation >= MaxTimeInvestigation)
+		const FVector PawnLocation = OwnerController->GetPawn()->GetActorLocation();
+		if (FVector::DistSquaredXY(PawnLocation, LastKnownLocation) <= 100.f || CurrentTimeInvestigation >= MaxTimeInvestigation)
 		{
 			OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, false);
 			State = ETargetingState::ETS_Default;
 			CurrentTimeInvestigation = 0.f;
 		}
 	}
+}
+
+void UAITargetComponent::StopPatrolling() const
+{
+	ensure(OwnerController != nullptr && OwnerController->GetPawn() != nullptr);
+
+	UAIPatrolMovementComponent* PatrolMovementComponent = OwnerController->GetPawn()->FindComponentByClass<UAIPatrolMovementComponent>();
+	if (PatrolMovementComponent == nullptr)
+	{
+		return;
+	}
+
+	PatrolMovementComponent->Stop();
 }
 
 void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

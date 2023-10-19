@@ -47,6 +47,8 @@ protected:
 	void TrackTarget();
 
 	void Investigate(const float);
+
+	void StopPatrolling() const;
 	
 public:	
 	// Called every frame
