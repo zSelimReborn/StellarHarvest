@@ -62,7 +62,7 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, !bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, SourceActor);
-	TargetRef = SourceActor;
+
 	State = (bIsTrackingTarget)? ETargetingState::ETS_Tracking : ETargetingState::ETS_Investigating;
 	
 	if (!bIsTrackingTarget)
@@ -70,6 +70,13 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 		CurrentTimeInvestigation = 0.f;
 		OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, LastKnownLocation);
 		TargetRef = nullptr;
+		OnTargetLost.Broadcast(SourceActor);
+		OnInvestigationStart.Broadcast();
+	}
+	else
+	{
+		TargetRef = SourceActor;
+		OnTargetAcquired.Broadcast(TargetRef);
 	}
 
 	StopPatrolling();
@@ -94,6 +101,7 @@ void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& 
 		StopPatrolling();
 		State = ETargetingState::ETS_Investigating;
 		CurrentTimeInvestigation = 0.f;
+		OnInvestigationStart.Broadcast();
 	}
 	else
 	{
@@ -128,6 +136,7 @@ void UAITargetComponent::Investigate(const float DeltaTime)
 			OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, false);
 			State = ETargetingState::ETS_Default;
 			CurrentTimeInvestigation = 0.f;
+			OnInvestigationStop.Broadcast();
 		}
 	}
 }

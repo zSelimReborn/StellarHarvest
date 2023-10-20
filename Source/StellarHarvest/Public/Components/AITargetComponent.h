@@ -19,6 +19,11 @@ enum class ETargetingState : uint8
 	ETS_MAX
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetAcquiredDelegate, AActor*, TargetActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetLostDelegate, AActor*, TargetActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInvestigationStartDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInvestigationStopDelegate);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UAITargetComponent : public UActorComponent
 {
@@ -108,4 +113,18 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> TargetRef = nullptr;
+
+// Events
+public:
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnTargetAcquiredDelegate OnTargetAcquired;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnTargetLostDelegate OnTargetLost;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnInvestigationStartDelegate OnInvestigationStart;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnInvestigationStopDelegate OnInvestigationStop;
 };
