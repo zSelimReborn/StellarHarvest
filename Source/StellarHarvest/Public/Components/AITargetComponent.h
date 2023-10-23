@@ -54,6 +54,8 @@ protected:
 	void Investigate(const float);
 
 	void StopPatrolling() const;
+
+	void RotateTowardsStimuli(const AActor* StimuliActor) const;
 	
 public:	
 	// Called every frame
@@ -99,6 +101,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Investigating")
 	float MaxTimeInvestigation = 5.f;
 
+	UPROPERTY(EditAnywhere, Category="Targeting")
+	bool bRotateTowardsStimuli = true;
+	
 	UPROPERTY(Transient)
 	TObjectPtr<AAIController> OwnerController;
 

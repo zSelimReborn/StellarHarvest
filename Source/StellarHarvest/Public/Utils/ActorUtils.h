@@ -17,4 +17,7 @@ class STELLARHARVEST_API UActorUtils : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintPure)
 	static bool IsVisibleOnScreen(const APlayerController* PC, const AActor* TestingActor);
+
+	UFUNCTION(BlueprintCallable)
+	static void RotateTowardsTarget(AActor* Source, const AActor* TargetActor, const bool bOverrideZ);
 };

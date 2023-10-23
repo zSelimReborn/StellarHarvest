@@ -26,3 +26,21 @@ bool UActorUtils::IsVisibleOnScreen(const APlayerController* PC, const AActor* T
 		return false;
 	}
 }
+
+void UActorUtils::RotateTowardsTarget(AActor* Source, const AActor* TargetActor, const bool bOverrideZ)
+{
+	if (Source == nullptr || TargetActor == nullptr)
+	{
+		return;
+	}
+
+	const FVector SourceLocation = Source->GetActorLocation();
+	const FVector TargetLocation = TargetActor->GetActorLocation();
+	FVector Direction = TargetLocation - SourceLocation;
+	if (!bOverrideZ)
+	{
+		Direction.Z = SourceLocation.Z;
+	}
+	
+	Source->SetActorRotation(Direction.Rotation());
+}

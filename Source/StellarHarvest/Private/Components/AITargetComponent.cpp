@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/AffiliationComponent.h"
 #include "Components/AIPatrolMovementComponent.h"
+#include "Utils/ActorUtils.h"
 
 UAITargetComponent::UAITargetComponent()
 {
@@ -75,6 +76,7 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	}
 	else
 	{
+		RotateTowardsStimuli(SourceActor);
 		TargetRef = SourceActor;
 		OnTargetAcquired.Broadcast(TargetRef);
 	}
@@ -102,6 +104,7 @@ void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& 
 		State = ETargetingState::ETS_Investigating;
 		CurrentTimeInvestigation = 0.f;
 		OnInvestigationStart.Broadcast();
+		RotateTowardsStimuli(SourceActor);
 	}
 	else
 	{
@@ -152,6 +155,16 @@ void UAITargetComponent::StopPatrolling() const
 	}
 
 	PatrolMovementComponent->Stop();
+}
+
+void UAITargetComponent::RotateTowardsStimuli(const AActor* StimuliActor) const
+{
+	ensure(OwnerController != nullptr);
+	
+	if (bRotateTowardsStimuli)
+	{
+		UActorUtils::RotateTowardsTarget(OwnerController->GetPawn(), StimuliActor, false);
+	}
 }
 
 void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
