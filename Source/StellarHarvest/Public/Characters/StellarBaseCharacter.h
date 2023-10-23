@@ -45,16 +45,7 @@ public:
 protected:
 	FRotator GetActualViewRotation() const;
 	void InitializeObservers();
-	void ToggleHighlightItem(const AActor*, const bool) const;
-
-// Callbacks
-protected:
-	UFUNCTION()
-	void OnInteractableFound(const FHitResult& HitResult, AActor* NewItem);
-
-	UFUNCTION()
-	void OnInteractableLost(AActor* LostItem);
-
+	
 // Components
 protected:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
@@ -73,7 +64,4 @@ protected:
 
 	UPROPERTY(Transient)
 	float InitialWalkSpeed;
-	
-	UPROPERTY(Transient)
-	TObjectPtr<AActor> SelectedInteractable;
 };

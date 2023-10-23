@@ -85,6 +85,7 @@ void AStellarBaseCharacter::RequestMove(const FVector& Direction, const float Ax
 
 void AStellarBaseCharacter::RequestStartInteraction()
 {
+	AActor* SelectedInteractable = SearchItemsComponent->GetFoundItem();
 	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
 	{
 		IInteractable::Execute_StartInteraction(SelectedInteractable, this);
@@ -93,6 +94,7 @@ void AStellarBaseCharacter::RequestStartInteraction()
 
 void AStellarBaseCharacter::RequestFinishInteraction()
 {
+	AActor* SelectedInteractable = SearchItemsComponent->GetFoundItem();
 	if (SelectedInteractable != nullptr && SelectedInteractable->Implements<UInteractable>())
 	{
 		IInteractable::Execute_FinishInteraction(SelectedInteractable, this);
@@ -118,63 +120,4 @@ FRotator AStellarBaseCharacter::GetActualViewRotation() const
 	return CCameraRotation;
 }
 
-void AStellarBaseCharacter::InitializeObservers()
-{
-	if (SearchItemsComponent != nullptr)
-	{
-		SearchItemsComponent->OnNewItemFound().AddDynamic(this, &AStellarBaseCharacter::OnInteractableFound);
-		SearchItemsComponent->OnItemLost().AddDynamic(this, &AStellarBaseCharacter::OnInteractableLost);
-	}
-}
-
-void AStellarBaseCharacter::ToggleHighlightItem(const AActor* HighlightActor, const bool bHighlight) const
-{
-	if (HighlightActor)
-	{
-		const UHighlightComponent* HighlightComponent = HighlightActor->FindComponentByClass<UHighlightComponent>();
-		if (HighlightComponent)
-		{
-			if (bHighlight)
-			{
-				HighlightComponent->ActivateHighlight();
-			}
-			else
-			{
-				HighlightComponent->DeactivateHighlight();
-			}
-		}
-	}
-}
-
-void AStellarBaseCharacter::OnInteractableFound(const FHitResult& HitResult, AActor* NewItem)
-{
-	if (NewItem)
-	{
-		if (SelectedInteractable != nullptr)
-		{
-			ToggleHighlightItem(SelectedInteractable, false);
-			SelectedInteractable = nullptr;
-		}
-
-		if (NewItem->Implements<UInteractable>())
-		{
-			if (!IInteractable::Execute_CanBeInteracted(NewItem, this))
-			{
-				return;
-			}
-		}
-
-		ToggleHighlightItem(NewItem, true);
-		SelectedInteractable = NewItem;
-	}
-}
-
-void AStellarBaseCharacter::OnInteractableLost(AActor* LostItem)
-{
-	if (SelectedInteractable != nullptr)
-	{
-		ToggleHighlightItem(SelectedInteractable, false);
-	}
-
-	SelectedInteractable = nullptr;
-}
+void AStellarBaseCharacter::InitializeObservers() {}

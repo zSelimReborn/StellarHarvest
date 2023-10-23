@@ -3,6 +3,7 @@
 
 #include "Components/SearchInteractableComponent.h"
 
+#include "Components/HighlightComponent.h"
 #include "Interfaces/Interactable.h"
 
 // Sets default values for this component's properties
@@ -51,12 +52,33 @@ void USearchInteractableComponent::SearchForInteractables()
 		{
 			NewItemFoundDelegate.Broadcast(TraceResult, FoundItem);
 			ItemFoundRef = FoundItem;
+			ToggleHighlightItem(ItemFoundRef.Get(), true);
 		}
 	}
 	else if (ItemFoundRef != nullptr)
 	{
 		ItemLostDelegate.Broadcast(ItemFoundRef.Get());
+		ToggleHighlightItem(ItemFoundRef.Get(), false);
 		ItemFoundRef = nullptr;
+	}
+}
+
+void USearchInteractableComponent::ToggleHighlightItem(const AActor* HighlightActor, const bool bHighlight) const
+{
+	if (HighlightActor)
+	{
+		const UHighlightComponent* HighlightComponent = HighlightActor->FindComponentByClass<UHighlightComponent>();
+		if (HighlightComponent)
+		{
+			if (bHighlight)
+			{
+				HighlightComponent->ActivateHighlight();
+			}
+			else
+			{
+				HighlightComponent->DeactivateHighlight();
+			}
+		}
 	}
 }
 
@@ -66,5 +88,10 @@ void USearchInteractableComponent::TickComponent(float DeltaTime, ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	SearchForInteractables();
+}
+
+AActor* USearchInteractableComponent::GetFoundItem() const
+{
+	return ItemFoundRef.Get();
 }
 

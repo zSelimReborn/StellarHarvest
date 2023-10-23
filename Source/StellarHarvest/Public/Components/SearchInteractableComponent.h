@@ -25,10 +25,15 @@ protected:
 	
 	void SearchForInteractables();
 
+	void ToggleHighlightItem(const AActor*, const bool) const;
+	
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable)
+	AActor* GetFoundItem() const;
+	
 // Events
 public:
 	FOnNewItemFoundDelegate& OnNewItemFound() { return NewItemFoundDelegate; }
