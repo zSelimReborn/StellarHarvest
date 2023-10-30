@@ -31,6 +31,7 @@ public:
 	void RequestMovementUsingMouse(const FInputActionInstance&);
 	void RequestStartInteraction(const FInputActionInstance&);
 	void RequestFinishInteraction(const FInputActionInstance&);
+	void RequestCounterMeasure(const FInputActionInstance&);
 	
 	void EnableMouseMove();
 	void DisableMouseMove();
@@ -49,6 +50,15 @@ protected:
 protected:
 	UFUNCTION()
 	void OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals);
+
+	UFUNCTION()
+	void OnUseCounterMeasure(const int32 CurrentAmount);
+
+	UFUNCTION()
+	void OnEnemyInRange();
+
+	UFUNCTION()
+	void OnLoseEnemiesInRange();
 	
 // Properties
 protected:
@@ -89,4 +99,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> RequestInteractAction;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> RequestCounterMeasureAction;
 };

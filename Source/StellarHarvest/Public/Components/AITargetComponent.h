@@ -67,6 +67,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopSearch();
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool HasTarget() const { return TargetRef != nullptr; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE AActor* GetTarget() const { return TargetRef; }
+
 // Callbacks
 protected:
 	UFUNCTION()

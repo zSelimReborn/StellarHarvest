@@ -20,4 +20,13 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnUseCounterMeasure(const int32 CurrentAmount);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnEnemyInRange();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnLoseEnemiesInRange();
 };

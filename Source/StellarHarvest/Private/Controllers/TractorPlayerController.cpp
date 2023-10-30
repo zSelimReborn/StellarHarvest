@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "UI/TractorHud.h"
 #include "Characters/StellarBaseCharacter.h"
+#include "Components/CounterMeasureComponent.h"
 #include "Components/CrystalCollectorComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDebugMouseMove(
@@ -42,9 +43,13 @@ void ATractorPlayerController::SetupInputComponent()
 		if (EnhancedInputComponent)
 		{
 			EnhancedInputComponent->BindAction(AnalogMoveAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestAnalogMove);
+			
 			EnhancedInputComponent->BindAction(RequestMouseMoveAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestMovementUsingMouse);
+			
 			EnhancedInputComponent->BindAction(RequestInteractAction, ETriggerEvent::Started, this, &ATractorPlayerController::RequestStartInteraction);
 			EnhancedInputComponent->BindAction(RequestInteractAction, ETriggerEvent::Completed, this, &ATractorPlayerController::RequestFinishInteraction);
+
+			EnhancedInputComponent->BindAction(RequestCounterMeasureAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestCounterMeasure);
 
 			InitializeMappingContext();
 		}
@@ -86,6 +91,18 @@ void ATractorPlayerController::RequestFinishInteraction(const FInputActionInstan
 	if (TractorRef != nullptr)
 	{
 		TractorRef->RequestFinishInteraction();
+	}
+}
+
+void ATractorPlayerController::RequestCounterMeasure(const FInputActionInstance&)
+{
+	if (TractorRef != nullptr)
+	{
+		UCounterMeasureComponent* CounterMeasureComponent = TractorRef->FindComponentByClass<UCounterMeasureComponent>();
+		if (CounterMeasureComponent != nullptr)
+		{
+			CounterMeasureComponent->UseCounterMeasure();
+		}
 	}
 }
 
@@ -143,6 +160,14 @@ void ATractorPlayerController::SetupEvents()
 	{
 		CrystalCollectorComponent->OnCollectCrystals().AddDynamic(this, &ATractorPlayerController::OnCollectCrystals);
 	}
+
+	UCounterMeasureComponent* CounterMeasureComponent = GetPawn()->FindComponentByClass<UCounterMeasureComponent>();
+	if (CounterMeasureComponent)
+	{
+		CounterMeasureComponent->OnUseCounterMeasure().AddDynamic(this, &ATractorPlayerController::OnUseCounterMeasure);
+		CounterMeasureComponent->OnEnemiesInRange().AddDynamic(this, &ATractorPlayerController::OnEnemyInRange);
+		CounterMeasureComponent->OnLoseEnemiesInRange().AddDynamic(this, &ATractorPlayerController::OnLoseEnemiesInRange);
+	}
 }
 
 void ATractorPlayerController::OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals)
@@ -150,6 +175,30 @@ void ATractorPlayerController::OnCollectCrystals(const int32 CollectedCrystals, 
 	if (HUDWidgetRef != nullptr)
 	{
 		HUDWidgetRef->OnCollectCrystals(CollectedCrystals, TotalCrystals);
+	}
+}
+
+void ATractorPlayerController::OnUseCounterMeasure(const int32 CurrentAmount)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnUseCounterMeasure(CurrentAmount);
+	}
+}
+
+void ATractorPlayerController::OnEnemyInRange()
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnEnemyInRange();
+	}
+}
+
+void ATractorPlayerController::OnLoseEnemiesInRange()
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnLoseEnemiesInRange();
 	}
 }
 
