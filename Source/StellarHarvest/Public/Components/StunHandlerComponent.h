@@ -32,6 +32,8 @@ protected:
 	void ApplyStun();
 
 	void RemoveStun();
+
+	void DrawDebug() const;
 	
 public:	
 	// Called every frame

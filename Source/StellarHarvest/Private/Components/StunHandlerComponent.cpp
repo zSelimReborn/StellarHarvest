@@ -6,7 +6,13 @@
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
-#include "Particles/ParticleSystemComponent.h"
+
+static TAutoConsoleVariable<bool> CVarDebugStunStatus(
+	TEXT("StellarHarvest.DebugStunStatus"),
+	false,
+	TEXT("Show debug info about stun status."),
+	ECVF_Default
+);
 
 UStunHandlerComponent::UStunHandlerComponent()
 {
@@ -82,10 +88,22 @@ void UStunHandlerComponent::RemoveStun()
 	}
 }
 
+void UStunHandlerComponent::DrawDebug() const
+{
+	if (CVarDebugStunStatus->GetBool())
+	{
+		FString DebugInfo = FString::Printf(TEXT("<!---STUN --->\nDuration: %.2f | Current: %.2f"), Duration, CurrentTime);
+		const FVector OwnerLocation = GetOwner()->GetActorLocation();
+		const FVector DebugLocation = {OwnerLocation.X, OwnerLocation.Y - 100.f, OwnerLocation.Z + 150.f};
+		DrawDebugString(GetWorld(), DebugLocation, DebugInfo, nullptr, FColor::Black, 0.001);
+	}
+}
+
 void UStunHandlerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	UpdateStatus(DeltaTime);
+	DrawDebug();
 }
 
 void UStunHandlerComponent::Apply(const float DeltaDuration)
@@ -95,6 +113,5 @@ void UStunHandlerComponent::Apply(const float DeltaDuration)
 	SetComponentTickEnabled(true);
 	ApplyStun();
 	OnStatusApplied.Broadcast(Duration);
-	UE_LOG(LogTemp, Error, TEXT("Stun duration: %.2f"), Duration);
 }
 
