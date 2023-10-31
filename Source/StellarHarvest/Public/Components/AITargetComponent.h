@@ -56,6 +56,8 @@ protected:
 	void StopPatrolling() const;
 
 	void RotateTowardsStimuli(const AActor* StimuliActor) const;
+
+	void DrawDebug(const float DeltaTime);
 	
 public:	
 	// Called every frame
@@ -124,6 +126,15 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> TargetRef = nullptr;
+
+	UPROPERTY(Transient)
+	bool bDebugSawSomething = false;
+
+	UPROPERTY(Transient)
+	bool bDebugHeardSomething = false;
+
+	UPROPERTY(Transient)
+	float CurrentDebugTime = 0.f;
 
 // Events
 public:

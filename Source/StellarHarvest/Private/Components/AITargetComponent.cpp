@@ -9,16 +9,21 @@
 #include "Components/AIPatrolMovementComponent.h"
 #include "Utils/ActorUtils.h"
 
+static TAutoConsoleVariable<bool> CVarDebugAITarget(
+	TEXT("StellarHarvest.AI.TargetComponent"),
+	false,
+	TEXT("Show debug info targeting system for AI."),
+	ECVF_Default
+);
+
 UAITargetComponent::UAITargetComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
 }
 
 void UAITargetComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void UAITargetComponent::OnRegister()
@@ -60,6 +65,7 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	ensure(OwnerController != nullptr);
 	
 	const bool bIsTrackingTarget = Stimulus.WasSuccessfullySensed();
+	bDebugSawSomething = bIsTrackingTarget;
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, !bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, SourceActor);
@@ -95,6 +101,7 @@ void UAITargetComponent::OnHearStimulus(AActor* SourceActor, const FAIStimulus& 
 	}
 	
 	const bool bIsInvestigating = Stimulus.WasSuccessfullySensed();
+	bDebugHeardSomething = bIsInvestigating;
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, bIsInvestigating);
 	OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, Stimulus.StimulusLocation);
 
@@ -167,12 +174,46 @@ void UAITargetComponent::RotateTowardsStimuli(const AActor* StimuliActor) const
 	}
 }
 
+void UAITargetComponent::DrawDebug(const float DeltaTime)
+{
+	ensure(OwnerController != nullptr && OwnerController->GetPawn() != nullptr);
+	
+	if (CVarDebugAITarget->GetBool())
+	{
+		CurrentDebugTime += DeltaTime;
+		if (CurrentDebugTime > 5.f)
+		{
+			CurrentDebugTime = 0.f;
+			bDebugSawSomething = false;
+			bDebugHeardSomething = false;
+		}
+
+		const FString TargetName = (TargetRef != nullptr)? TargetRef->GetActorLabel() : TEXT("None");
+		const FString SawSomething		= (bDebugSawSomething)? TEXT("Yes") : TEXT("No");
+		const FString HeardSomething	= (bDebugHeardSomething)? TEXT("Yes") : TEXT("No");
+		
+		const FString DebugString = FString::Printf(
+			TEXT("<!-- AITarget -->\nState: %s | Target: %s | LastLocation: %s\n"
+					"<!-- Investigation --> Total: %.2f | Current: %.2f\n"
+					"<!-- Stimuli --> Saw: %s | Heard: %s"),
+				*UEnum::GetValueAsString(State), *TargetName, *LastKnownLocation.ToString(),
+				MaxTimeInvestigation, CurrentTimeInvestigation,
+				*SawSomething, *HeardSomething
+		);
+		
+		const FVector PawnLocation = OwnerController->GetPawn()->GetActorLocation();
+		const FVector DebugLocation = {PawnLocation.X, PawnLocation.Y, PawnLocation.Z + 150.f};
+		DrawDebugString(GetWorld(), DebugLocation, DebugString, nullptr, FColor::Black, 0.001f);
+	}
+}
+
 void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	TrackTarget();
 	Investigate(DeltaTime);
+	DrawDebug(DeltaTime);
 }
 
 void UAITargetComponent::StartSearch()

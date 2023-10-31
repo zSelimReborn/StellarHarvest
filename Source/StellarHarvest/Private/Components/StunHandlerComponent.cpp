@@ -92,7 +92,7 @@ void UStunHandlerComponent::DrawDebug() const
 {
 	if (CVarDebugStunStatus->GetBool())
 	{
-		FString DebugInfo = FString::Printf(TEXT("<!---STUN --->\nDuration: %.2f | Current: %.2f"), Duration, CurrentTime);
+		const FString DebugInfo = FString::Printf(TEXT("<!---STUN --->\nDuration: %.2f | Current: %.2f"), Duration, CurrentTime);
 		const FVector OwnerLocation = GetOwner()->GetActorLocation();
 		const FVector DebugLocation = {OwnerLocation.X, OwnerLocation.Y - 100.f, OwnerLocation.Z + 150.f};
 		DrawDebugString(GetWorld(), DebugLocation, DebugInfo, nullptr, FColor::Black, 0.001);

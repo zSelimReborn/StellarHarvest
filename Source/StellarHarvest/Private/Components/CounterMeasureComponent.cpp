@@ -50,7 +50,6 @@ void UCounterMeasureComponent::UnBindTriggerVolume()
 
 void UCounterMeasureComponent::ApplyStun()
 {
-	UE_LOG(LogTemp, Error, TEXT("Current enemies: %d"), Enemies.Num());
 	for (int32 Index = 0; Index < Enemies.Num(); ++Index)
 	{
 		if (!Enemies.IsValidIndex(Index))
@@ -114,7 +113,6 @@ void UCounterMeasureComponent::UseCounterMeasure()
 		return;
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("Use Counter Measure"));
 	CurrentAmount = FMath::Clamp(CurrentAmount - 1, 0, TotalAmount);
 	OnUseCounterMeasureDelegate.Broadcast(CurrentAmount);
 	bIsUsable = false;
