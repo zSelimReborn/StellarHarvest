@@ -30,6 +30,8 @@ protected:
 	void BindTriggerVolume();
 
 	void UnBindTriggerVolume();
+
+	void ApplyStun();
 	
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -73,9 +75,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category="CounterMeasure")
 	TObjectPtr<UParticleSystem> StunParticle;
 
-	UPROPERTY(EditAnywhere, Category="CounterMeasure")
-	TSubclassOf<AActor> EnemyClass;
+	UPROPERTY(EditAnywhere, Category="Stun")
+	float Duration = 5.f;
 
+	UPROPERTY(EditAnywhere, Category="Stun")
+	float RandomDeviation = 1.f;
+	
 	UPROPERTY(Transient)
 	TObjectPtr<UShapeComponent> TriggerVolumeRef;
 

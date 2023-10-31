@@ -20,4 +20,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static void RotateTowardsTarget(AActor* Source, const AActor* TargetActor, const bool bOverrideZ);
+
+	UFUNCTION(BlueprintPure)
+	static bool IsFriendly(const AActor* Source, const AActor* Target);
 };

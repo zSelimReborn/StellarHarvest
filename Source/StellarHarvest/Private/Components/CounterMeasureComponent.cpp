@@ -4,6 +4,9 @@
 #include "Components/CounterMeasureComponent.h"
 
 #include "Components/ShapeComponent.h"
+#include "Components/StunHandlerComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Utils/ActorUtils.h"
 
 UCounterMeasureComponent::UCounterMeasureComponent()
 {
@@ -45,6 +48,43 @@ void UCounterMeasureComponent::UnBindTriggerVolume()
 	TriggerVolumeRef->OnComponentEndOverlap.RemoveDynamic(this, &UCounterMeasureComponent::OnVolumeFinishOverlap);
 }
 
+void UCounterMeasureComponent::ApplyStun()
+{
+	UE_LOG(LogTemp, Error, TEXT("Current enemies: %d"), Enemies.Num());
+	for (int32 Index = 0; Index < Enemies.Num(); ++Index)
+	{
+		if (!Enemies.IsValidIndex(Index))
+		{
+			continue;
+		}
+		
+		const TWeakObjectPtr<AActor> Enemy = Enemies[Index];
+		if (!Enemy.IsValid())
+		{
+			continue;
+		}
+
+		if (!TriggerVolumeRef->IsOverlappingActor(Enemy.Get()))
+		{
+			continue;
+		}
+
+		UStunHandlerComponent* StunComponent = Enemy->FindComponentByClass<UStunHandlerComponent>();
+		if (StunComponent == nullptr)
+		{
+			continue;
+		}
+
+		const float StunDuration = FMath::FRandRange(
+			FMath::Max(0.0f, Duration - RandomDeviation), (Duration + RandomDeviation)
+		);
+		
+		StunComponent->Apply(StunDuration);
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), StunParticle, Enemy->GetActorLocation(), FRotator::ZeroRotator);
+	}
+}
+
 void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -60,6 +100,7 @@ void UCounterMeasureComponent::UseCounterMeasure()
 	UE_LOG(LogTemp, Error, TEXT("Use Counter Measure"));
 	CurrentAmount = FMath::Clamp(CurrentAmount - 1, 0, TotalAmount);
 	OnUseCounterMeasureDelegate.Broadcast(CurrentAmount);
+	ApplyStun();
 }
 
 void UCounterMeasureComponent::SetTriggerVolume(UShapeComponent* Volume)
@@ -87,28 +128,18 @@ void UCounterMeasureComponent::OnVolumeStartOverlap(UPrimitiveComponent* Overlap
 		return;
 	}
 
-	if (!OtherActor->IsA(EnemyClass))
+	if (UActorUtils::IsFriendly(GetOwner(), OtherActor))
 	{
 		return;
 	}
-
-	Enemies.Add(OtherActor);
+	
+	Enemies.AddUnique(OtherActor);
 	OnEnemiesInRangeDelegate.Broadcast();
 }
 
 void UCounterMeasureComponent::OnVolumeFinishOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor == nullptr)
-	{
-		return;
-	}
-
-	if (!OtherActor->IsA(EnemyClass))
-	{
-		return;
-	}
-
 	Enemies.Remove(OtherActor);
 	
 	if (Enemies.Num() <= 0)

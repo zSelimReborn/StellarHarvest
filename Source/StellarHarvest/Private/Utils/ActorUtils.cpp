@@ -3,6 +3,8 @@
 
 #include "Utils/ActorUtils.h"
 
+#include "Components/AffiliationComponent.h"
+
 bool UActorUtils::IsVisibleOnScreen(const APlayerController* PC, const AActor* TestingActor)
 {
 	if (PC == nullptr || TestingActor == nullptr)
@@ -43,4 +45,26 @@ void UActorUtils::RotateTowardsTarget(AActor* Source, const AActor* TargetActor,
 	}
 	
 	Source->SetActorRotation(Direction.Rotation());
+}
+
+bool UActorUtils::IsFriendly(const AActor* Source, const AActor* Target)
+{
+	if (Source == nullptr || Target == nullptr)
+	{
+		return true;
+	}
+
+	if (Source == Target)
+	{
+		return true;
+	}
+
+	const UAffiliationComponent* SourceAffiliation = Source->FindComponentByClass<UAffiliationComponent>();
+	const UAffiliationComponent* TargetAffiliation = Target->FindComponentByClass<UAffiliationComponent>();
+	if (SourceAffiliation == nullptr || TargetAffiliation == nullptr)
+	{
+		return true;
+	}
+	
+	return SourceAffiliation->GetAffiliation().IsEqual(TargetAffiliation->GetAffiliation());
 }
