@@ -118,11 +118,15 @@ protected:
 
 // Delegates
 protected:
+	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnUseCounterMeasureDelegate OnUseCounterMeasureDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnEnemiesInRangeDelegate OnEnemiesInRangeDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnLoseEnemiesInRangeDelegate OnLoseEnemiesInRangeDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnCooldownFinishedDelegate OnCooldownFinishedDelegate;
 };
