@@ -13,6 +13,7 @@ class UShapeComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUseCounterMeasureDelegate, const int32, CurrentAmount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemiesInRangeDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoseEnemiesInRangeDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCooldownFinishedDelegate);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UCounterMeasureComponent : public UActorComponent
@@ -32,6 +33,8 @@ protected:
 	void UnBindTriggerVolume();
 
 	void ApplyStun();
+
+	void UpdateCooldown(const float DeltaTime);
 	
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -48,6 +51,21 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetTriggerVolume(UShapeComponent* Volume);
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCooldownDuration() const { return CooldownDuration; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCooldownCurrentTime() const { return CooldownCurrentTime; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCooldownCurrentRatio() const { return CooldownCurrentTime / CooldownDuration; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsCoolingDown() const { return !bIsUsable; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool HasEnemies() const { return Enemies.Num() > 0; }
+
 // Events
 public:
 	FOnUseCounterMeasureDelegate& OnUseCounterMeasure() { return OnUseCounterMeasureDelegate; }
@@ -55,6 +73,8 @@ public:
 	FOnEnemiesInRangeDelegate& OnEnemiesInRange() { return OnEnemiesInRangeDelegate; }
 
 	FOnLoseEnemiesInRangeDelegate& OnLoseEnemiesInRange() { return OnLoseEnemiesInRangeDelegate; }
+
+	FOnCooldownFinishedDelegate& OnCooldownFinished() { return OnCooldownFinishedDelegate; }
 	
 // Callbacks
 protected:
@@ -80,6 +100,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Stun")
 	float RandomDeviation = 1.f;
+
+	UPROPERTY(EditAnywhere, Category="Cooldown")
+	float CooldownDuration = 10.f;
+
+	UPROPERTY(Transient)
+	float CooldownCurrentTime = 0.f;
+
+	UPROPERTY(Transient)
+	bool bIsUsable = true;
 	
 	UPROPERTY(Transient)
 	TObjectPtr<UShapeComponent> TriggerVolumeRef;
@@ -94,4 +123,6 @@ protected:
 	FOnEnemiesInRangeDelegate OnEnemiesInRangeDelegate;
 
 	FOnLoseEnemiesInRangeDelegate OnLoseEnemiesInRangeDelegate;
+
+	FOnCooldownFinishedDelegate OnCooldownFinishedDelegate;
 };

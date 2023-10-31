@@ -29,4 +29,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnLoseEnemiesInRange();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCounterMeasureCooldownFinished();
 };

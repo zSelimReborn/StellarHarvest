@@ -85,14 +85,31 @@ void UCounterMeasureComponent::ApplyStun()
 	}
 }
 
+void UCounterMeasureComponent::UpdateCooldown(const float DeltaTime)
+{
+	if (bIsUsable)
+	{
+		return;
+	}
+	
+	CooldownCurrentTime += DeltaTime;
+	if (CooldownCurrentTime > CooldownDuration)
+	{
+		CooldownCurrentTime = 0.f;
+		bIsUsable = true;
+		OnCooldownFinishedDelegate.Broadcast();
+	}
+}
+
 void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdateCooldown(DeltaTime);
 }
 
 void UCounterMeasureComponent::UseCounterMeasure()
 {
-	if (CurrentAmount <= 0)
+	if (CurrentAmount <= 0 || !bIsUsable)
 	{
 		return;
 	}
@@ -100,6 +117,7 @@ void UCounterMeasureComponent::UseCounterMeasure()
 	UE_LOG(LogTemp, Error, TEXT("Use Counter Measure"));
 	CurrentAmount = FMath::Clamp(CurrentAmount - 1, 0, TotalAmount);
 	OnUseCounterMeasureDelegate.Broadcast(CurrentAmount);
+	bIsUsable = false;
 	ApplyStun();
 }
 

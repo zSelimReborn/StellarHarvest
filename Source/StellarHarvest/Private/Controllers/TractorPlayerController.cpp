@@ -167,6 +167,7 @@ void ATractorPlayerController::SetupEvents()
 		CounterMeasureComponent->OnUseCounterMeasure().AddDynamic(this, &ATractorPlayerController::OnUseCounterMeasure);
 		CounterMeasureComponent->OnEnemiesInRange().AddDynamic(this, &ATractorPlayerController::OnEnemyInRange);
 		CounterMeasureComponent->OnLoseEnemiesInRange().AddDynamic(this, &ATractorPlayerController::OnLoseEnemiesInRange);
+		CounterMeasureComponent->OnCooldownFinished().AddDynamic(this, &ATractorPlayerController::OnCounterMeasureCooldownFinished);
 	}
 }
 
@@ -199,6 +200,14 @@ void ATractorPlayerController::OnLoseEnemiesInRange()
 	if (HUDWidgetRef != nullptr)
 	{
 		HUDWidgetRef->OnLoseEnemiesInRange();
+	}
+}
+
+void ATractorPlayerController::OnCounterMeasureCooldownFinished()
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnCounterMeasureCooldownFinished();
 	}
 }
 

@@ -59,6 +59,9 @@ protected:
 
 	UFUNCTION()
 	void OnLoseEnemiesInRange();
+
+	UFUNCTION()
+	void OnCounterMeasureCooldownFinished();
 	
 // Properties
 protected:
