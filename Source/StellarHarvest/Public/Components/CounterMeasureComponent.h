@@ -8,7 +8,7 @@
 
 class AAIMonsterController;
 class UParticleSystem;
-class UShapeComponent;
+class USphereComponent;
 
 UENUM(BlueprintType)
 enum class ECounterMeasureState : uint8
@@ -17,6 +17,13 @@ enum class ECounterMeasureState : uint8
 	ECMS_Active			UMETA(DisplayName="Active"),
 	ECMS_Cooldown		UMETA(DisplayName="Cooling down"),
 	ECMS_MAX
+};
+
+UENUM(BlueprintType)
+enum class EStunDealMode : uint8
+{
+	ESDM_Instant	UMETA(DisplayName="Instant"),
+	ESDM_Gradual	UMETA(DisplayName="Gradually")
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUseCounterMeasureDelegate, const int32, CurrentAmount);
@@ -51,6 +58,10 @@ protected:
 	void UpdateActive(const float DeltaTime);
 	
 	void UpdateCooldown(const float DeltaTime);
+
+	void UpdateGradualStun(const float DeltaTime);
+
+	void CheckForNotStunned();
 	
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -64,11 +75,17 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool HasCounterMeasures() const { return CurrentAmount > 0; }
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetDuration() const { return Duration; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrentDuration() const { return CurrentDuration; }
+
 	UFUNCTION(BlueprintCallable)
 	void UseCounterMeasure();
 
 	UFUNCTION(BlueprintCallable)
-	void SetTriggerVolume(UShapeComponent* Volume);
+	void SetTriggerVolume(USphereComponent* Volume);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCooldownDuration() const { return CooldownDuration; }
@@ -87,6 +104,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool HasEnemies() const { return Enemies.Num() > 0; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE EStunDealMode GetStunMode() const { return StunMode; }
 
 // Events
 public:
@@ -122,6 +142,12 @@ protected:
 	UPROPERTY(Transient)
 	float CurrentDuration = 0.f;
 
+	UPROPERTY(EditAnywhere, Category="CounterMeasure")
+	EStunDealMode StunMode = EStunDealMode::ESDM_Instant;
+
+	UPROPERTY(Transient)
+	float GradualCurrentRadius = 0.f;
+	
 	UPROPERTY(EditAnywhere, Category="VFX")
 	TObjectPtr<UParticleSystem> HitParticle;
 
@@ -141,10 +167,13 @@ protected:
 	ECounterMeasureState State = ECounterMeasureState::ECMS_Idle;
 	
 	UPROPERTY(Transient)
-	TObjectPtr<UShapeComponent> TriggerVolumeRef;
+	TObjectPtr<USphereComponent> TriggerVolumeRef;
 
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<AActor>> Enemies;
+
+	UPROPERTY(Transient)
+	FVector FireCounterMeasureLocation;
 
 // Delegates
 protected:

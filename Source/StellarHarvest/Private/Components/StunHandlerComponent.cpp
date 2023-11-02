@@ -46,6 +46,7 @@ void UStunHandlerComponent::UpdateStatus(const float DeltaTime)
 		OnStatusFinish();
 		CurrentTime = 0.f;
 		Duration = BaseDuration;
+		bIsUnderEffect = false;
 		SetComponentTickEnabled(false);
 	}
 }

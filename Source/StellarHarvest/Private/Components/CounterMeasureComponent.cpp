@@ -3,7 +3,7 @@
 
 #include "Components/CounterMeasureComponent.h"
 
-#include "Components/ShapeComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StunHandlerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Utils/ActorUtils.h"
@@ -21,7 +21,7 @@ void UCounterMeasureComponent::BeginPlay()
 void UCounterMeasureComponent::OnRegister()
 {
 	Super::OnRegister();
-	UShapeComponent* Volume = GetOwner()->FindComponentByClass<UShapeComponent>();
+	USphereComponent* Volume = GetOwner()->FindComponentByClass<USphereComponent>();
 	SetTriggerVolume(Volume);
 	CurrentAmount = TotalAmount;
 }
@@ -62,6 +62,12 @@ void UCounterMeasureComponent::ApplyStun(AActor* Target) const
 
 	UStunHandlerComponent* StunComponent = Target->FindComponentByClass<UStunHandlerComponent>();
 	if (StunComponent == nullptr)
+	{
+		return;
+	}
+
+	// No cumulative stun
+	if (StunComponent->IsUnderEffect())
 	{
 		return;
 	}
@@ -125,11 +131,53 @@ void UCounterMeasureComponent::UpdateCooldown(const float DeltaTime)
 	}
 }
 
+void UCounterMeasureComponent::UpdateGradualStun(const float DeltaTime)
+{
+	if (StunMode != EStunDealMode::ESDM_Gradual || State != ECounterMeasureState::ECMS_Active || TriggerVolumeRef == nullptr)
+	{
+		return;
+	}
+
+	const float TriggerRadius = TriggerVolumeRef->GetScaledSphereRadius();
+	const float CurrentRadius = FMath::GetMappedRangeValueClamped(
+		TRange<float>{0.f, Duration},
+		TRange<float>{0.f, TriggerRadius},
+		CurrentDuration
+	);
+	const float CurrentRadiusSquared = CurrentRadius * CurrentRadius;
+
+	const FVector OwnerLocation = GetOwner()->GetActorLocation();
+	for (int32 Index = 0; Index < Enemies.Num(); ++Index)
+	{
+		if (!Enemies.IsValidIndex(Index) || !Enemies[Index].IsValid())
+		{
+			continue;
+		}
+
+		const FVector EnemyLocation = Enemies[Index]->GetActorLocation();
+		const float Dist = FVector::DistSquared(EnemyLocation, OwnerLocation);
+		if (Dist <= CurrentRadiusSquared)
+		{
+			ApplyStun(Enemies[Index].Get());
+		}
+	}
+}
+
+void UCounterMeasureComponent::CheckForNotStunned()
+{
+	if (StunMode == EStunDealMode::ESDM_Instant && State == ECounterMeasureState::ECMS_Active)
+	{
+		ApplyStunToAll();
+	}
+}
+
 void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdateGradualStun(DeltaTime);
 	UpdateActive(DeltaTime);
 	UpdateCooldown(DeltaTime);
+	CheckForNotStunned();
 }
 
 void UCounterMeasureComponent::UseCounterMeasure()
@@ -141,11 +189,16 @@ void UCounterMeasureComponent::UseCounterMeasure()
 
 	State = ECounterMeasureState::ECMS_Active;
 	CurrentAmount = FMath::Clamp(CurrentAmount - 1, 0, TotalAmount);
+	FireCounterMeasureLocation = GetOwner()->GetActorLocation();
 	OnUseCounterMeasureDelegate.Broadcast(CurrentAmount);
-	ApplyStunToAll();
+	
+	if (StunMode == EStunDealMode::ESDM_Instant)
+	{
+		ApplyStunToAll();
+	}
 }
 
-void UCounterMeasureComponent::SetTriggerVolume(UShapeComponent* Volume)
+void UCounterMeasureComponent::SetTriggerVolume(USphereComponent* Volume)
 {
 	if (Volume == nullptr || Volume == TriggerVolumeRef)
 	{
@@ -176,7 +229,7 @@ void UCounterMeasureComponent::OnVolumeStartOverlap(UPrimitiveComponent* Overlap
 	}
 	
 	Enemies.AddUnique(OtherActor);
-	if (State == ECounterMeasureState::ECMS_Active)
+	if (State == ECounterMeasureState::ECMS_Active && StunMode == EStunDealMode::ESDM_Instant)
 	{
 		ApplyStun(OtherActor);
 	}
