@@ -10,10 +10,22 @@ class AAIMonsterController;
 class UParticleSystem;
 class UShapeComponent;
 
+UENUM(BlueprintType)
+enum class ECounterMeasureState : uint8
+{
+	ECMS_Idle			UMETA(DisplayName="Idle"),
+	ECMS_Active			UMETA(DisplayName="Active"),
+	ECMS_Cooldown		UMETA(DisplayName="Cooling down"),
+	ECMS_MAX
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUseCounterMeasureDelegate, const int32, CurrentAmount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemiesInRangeDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoseEnemiesInRangeDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCooldownFinishedDelegate);
+// BAD NAMING
+// Delegate called when counter measure finish dealing stun
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFinishDelegate);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UCounterMeasureComponent : public UActorComponent
@@ -32,8 +44,12 @@ protected:
 
 	void UnBindTriggerVolume();
 
-	void ApplyStun();
+	void ApplyStun(AActor* Target) const;
 
+	void ApplyStunToAll();
+
+	void UpdateActive(const float DeltaTime);
+	
 	void UpdateCooldown(const float DeltaTime);
 	
 public:	
@@ -44,6 +60,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE int32 GetCurrentAmount() const { return CurrentAmount; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool HasCounterMeasures() const { return CurrentAmount > 0; }
 
 	UFUNCTION(BlueprintCallable)
 	void UseCounterMeasure();
@@ -61,7 +80,10 @@ public:
 	FORCEINLINE float GetCooldownCurrentRatio() const { return CooldownCurrentTime / CooldownDuration; }
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool IsCoolingDown() const { return !bIsUsable; }
+	FORCEINLINE bool IsCoolingDown() const { return State == ECounterMeasureState::ECMS_Cooldown; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE ECounterMeasureState GetState() const { return State; }
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool HasEnemies() const { return Enemies.Num() > 0; }
@@ -75,6 +97,8 @@ public:
 	FOnLoseEnemiesInRangeDelegate& OnLoseEnemiesInRange() { return OnLoseEnemiesInRangeDelegate; }
 
 	FOnCooldownFinishedDelegate& OnCooldownFinished() { return OnCooldownFinishedDelegate; }
+
+	FOnFinishDelegate& OnFinish() { return OnFinishDelegate; }
 	
 // Callbacks
 protected:
@@ -93,22 +117,28 @@ protected:
 	int32 CurrentAmount = 0;
 
 	UPROPERTY(EditAnywhere, Category="CounterMeasure")
-	TObjectPtr<UParticleSystem> StunParticle;
+	float Duration = 3.f;
+
+	UPROPERTY(Transient)
+	float CurrentDuration = 0.f;
+
+	UPROPERTY(EditAnywhere, Category="VFX")
+	TObjectPtr<UParticleSystem> HitParticle;
 
 	UPROPERTY(EditAnywhere, Category="Stun")
-	float Duration = 5.f;
+	float StunDuration = 5.f;
 
 	UPROPERTY(EditAnywhere, Category="Stun")
-	float RandomDeviation = 1.f;
+	float StunRandomDeviation = 1.f;
 
 	UPROPERTY(EditAnywhere, Category="Cooldown")
 	float CooldownDuration = 10.f;
 
 	UPROPERTY(Transient)
 	float CooldownCurrentTime = 0.f;
-
+	
 	UPROPERTY(Transient)
-	bool bIsUsable = true;
+	ECounterMeasureState State = ECounterMeasureState::ECMS_Idle;
 	
 	UPROPERTY(Transient)
 	TObjectPtr<UShapeComponent> TriggerVolumeRef;
@@ -129,4 +159,7 @@ protected:
 
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnCooldownFinishedDelegate OnCooldownFinishedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnFinishDelegate OnFinishDelegate;
 };

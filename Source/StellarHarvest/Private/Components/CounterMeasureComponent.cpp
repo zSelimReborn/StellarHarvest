@@ -48,7 +48,33 @@ void UCounterMeasureComponent::UnBindTriggerVolume()
 	TriggerVolumeRef->OnComponentEndOverlap.RemoveDynamic(this, &UCounterMeasureComponent::OnVolumeFinishOverlap);
 }
 
-void UCounterMeasureComponent::ApplyStun()
+void UCounterMeasureComponent::ApplyStun(AActor* Target) const
+{
+	if (Target == nullptr)
+	{
+		return;
+	}
+	
+	if (!TriggerVolumeRef->IsOverlappingActor(Target))
+	{
+		return;
+	}
+
+	UStunHandlerComponent* StunComponent = Target->FindComponentByClass<UStunHandlerComponent>();
+	if (StunComponent == nullptr)
+	{
+		return;
+	}
+
+	const float ActualStunDuration = FMath::FRandRange(
+		FMath::Max(0.0f, StunDuration - StunRandomDeviation), (StunDuration + StunRandomDeviation)
+	);
+		
+	StunComponent->Apply(ActualStunDuration);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, Target->GetActorLocation(), FRotator::ZeroRotator);
+}
+
+void UCounterMeasureComponent::ApplyStunToAll()
 {
 	for (int32 Index = 0; Index < Enemies.Num(); ++Index)
 	{
@@ -63,30 +89,29 @@ void UCounterMeasureComponent::ApplyStun()
 			continue;
 		}
 
-		if (!TriggerVolumeRef->IsOverlappingActor(Enemy.Get()))
-		{
-			continue;
-		}
+		ApplyStun(Enemy.Get());
+	}
+}
 
-		UStunHandlerComponent* StunComponent = Enemy->FindComponentByClass<UStunHandlerComponent>();
-		if (StunComponent == nullptr)
-		{
-			continue;
-		}
+void UCounterMeasureComponent::UpdateActive(const float DeltaTime)
+{
+	if (State != ECounterMeasureState::ECMS_Active)
+	{
+		return;
+	}
 
-		const float StunDuration = FMath::FRandRange(
-			FMath::Max(0.0f, Duration - RandomDeviation), (Duration + RandomDeviation)
-		);
-		
-		StunComponent->Apply(StunDuration);
-
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), StunParticle, Enemy->GetActorLocation(), FRotator::ZeroRotator);
+	CurrentDuration += DeltaTime;
+	if (CurrentDuration > Duration)
+	{
+		CurrentDuration = 0.f;
+		State = (HasCounterMeasures())? ECounterMeasureState::ECMS_Cooldown : ECounterMeasureState::ECMS_Idle;
+		OnFinishDelegate.Broadcast();
 	}
 }
 
 void UCounterMeasureComponent::UpdateCooldown(const float DeltaTime)
 {
-	if (bIsUsable)
+	if (State != ECounterMeasureState::ECMS_Cooldown)
 	{
 		return;
 	}
@@ -95,7 +120,7 @@ void UCounterMeasureComponent::UpdateCooldown(const float DeltaTime)
 	if (CooldownCurrentTime > CooldownDuration)
 	{
 		CooldownCurrentTime = 0.f;
-		bIsUsable = true;
+		State = ECounterMeasureState::ECMS_Idle;
 		OnCooldownFinishedDelegate.Broadcast();
 	}
 }
@@ -103,20 +128,21 @@ void UCounterMeasureComponent::UpdateCooldown(const float DeltaTime)
 void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdateActive(DeltaTime);
 	UpdateCooldown(DeltaTime);
 }
 
 void UCounterMeasureComponent::UseCounterMeasure()
 {
-	if (CurrentAmount <= 0 || !bIsUsable)
+	if (CurrentAmount <= 0 || State != ECounterMeasureState::ECMS_Idle)
 	{
 		return;
 	}
 
+	State = ECounterMeasureState::ECMS_Active;
 	CurrentAmount = FMath::Clamp(CurrentAmount - 1, 0, TotalAmount);
 	OnUseCounterMeasureDelegate.Broadcast(CurrentAmount);
-	bIsUsable = false;
-	ApplyStun();
+	ApplyStunToAll();
 }
 
 void UCounterMeasureComponent::SetTriggerVolume(UShapeComponent* Volume)
@@ -150,7 +176,15 @@ void UCounterMeasureComponent::OnVolumeStartOverlap(UPrimitiveComponent* Overlap
 	}
 	
 	Enemies.AddUnique(OtherActor);
-	OnEnemiesInRangeDelegate.Broadcast();
+	if (State == ECounterMeasureState::ECMS_Active)
+	{
+		ApplyStun(OtherActor);
+	}
+
+	if (State == ECounterMeasureState::ECMS_Idle)
+	{
+		OnEnemiesInRangeDelegate.Broadcast();
+	}
 }
 
 void UCounterMeasureComponent::OnVolumeFinishOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
