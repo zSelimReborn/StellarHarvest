@@ -30,6 +30,7 @@ void UAITargetComponent::OnRegister()
 {
 	Super::OnRegister();
 	OwnerController = Cast<AAIController>(GetOwner());
+	SetupPerception();
 }
 
 void UAITargetComponent::SetupPerception()
@@ -69,19 +70,14 @@ void UAITargetComponent::OnSightStimulus(AActor* SourceActor, const FAIStimulus&
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, !bIsTrackingTarget);
 	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, SourceActor);
-
-	State = (bIsTrackingTarget)? ETargetingState::ETS_Tracking : ETargetingState::ETS_Investigating;
 	
 	if (!bIsTrackingTarget)
 	{
-		CurrentTimeInvestigation = 0.f;
-		OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, LastKnownLocation);
-		TargetRef = nullptr;
-		OnTargetLost.Broadcast(SourceActor);
-		OnInvestigationStart.Broadcast();
+		OnLoseTarget();
 	}
 	else
 	{
+		State = ETargetingState::ETS_Tracking;
 		RotateTowardsStimuli(SourceActor);
 		TargetRef = SourceActor;
 		OnTargetAcquired.Broadcast(TargetRef);
@@ -129,6 +125,11 @@ void UAITargetComponent::TrackTarget()
 		OwnerController->GetBlackboardComponent()->SetValueAsVector(TargetLocationBlackboardKey, TargetRef->GetActorLocation());
 		OwnerController->GetBlackboardComponent()->SetValueAsFloat(TargetDistanceBlackboardKey, DistanceToTarget);
 		LastKnownLocation = TargetRef->GetActorLocation();
+
+		if (!OwnerController->LineOfSightTo(TargetRef))
+		{
+			OnLoseTarget();
+		}
 	}
 }
 
@@ -164,13 +165,13 @@ void UAITargetComponent::StopPatrolling() const
 	PatrolMovementComponent->Stop();
 }
 
-void UAITargetComponent::RotateTowardsStimuli(const AActor* StimuliActor) const
+void UAITargetComponent::RotateTowardsStimuli(AActor* StimuliActor) const
 {
 	ensure(OwnerController != nullptr);
 	
 	if (bRotateTowardsStimuli)
 	{
-		UActorUtils::RotateTowardsTarget(OwnerController->GetPawn(), StimuliActor, false);
+		OwnerController->SetFocus(StimuliActor, EAIFocusPriority::Gameplay);
 	}
 }
 
@@ -207,6 +208,27 @@ void UAITargetComponent::DrawDebug(const float DeltaTime)
 	}
 }
 
+void UAITargetComponent::OnLoseTarget()
+{
+	State = ETargetingState::ETS_Investigating;
+	CurrentTimeInvestigation = 0.f;
+	OwnerController->GetBlackboardComponent()->SetValueAsVector(InvestigationLocationBlackboardKey, LastKnownLocation);
+	AActor* LastTarget = TargetRef;
+	TargetRef = nullptr;
+	OwnerController->ClearFocus(EAIFocusPriority::Gameplay);
+	OnTargetLost.Broadcast(LastTarget);
+	OnInvestigationStart.Broadcast();
+}
+
+void UAITargetComponent::ResetBlackboard() const
+{
+	ensure(OwnerController != nullptr && OwnerController->GetBlackboardComponent() != nullptr);
+
+	OwnerController->GetBlackboardComponent()->SetValueAsBool(HasTargetBlackboardKey, false);
+	OwnerController->GetBlackboardComponent()->SetValueAsObject(TargetObjectBlackboardKey, nullptr);
+	OwnerController->GetBlackboardComponent()->SetValueAsBool(IsInvestigatingBlackboardKey, false);
+}
+
 void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -218,18 +240,28 @@ void UAITargetComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 void UAITargetComponent::StartSearch()
 {
-	SetupPerception();
+	bCanUsePerception = true;
 }
 
 void UAITargetComponent::StopSearch()
 {
-	
+	ensure(OwnerController != nullptr);
+	OwnerController->ClearFocus(EAIFocusPriority::Gameplay);
+	ResetBlackboard();
+	TargetRef = nullptr;
+	State = ETargetingState::ETS_Default;
+	bCanUsePerception = false;
 }
 
 void UAITargetComponent::OnPerception(AActor* Actor, FAIStimulus Stimulus)
 {
 	ensure(OwnerController != nullptr);
 	ensure(OwnerController->GetBlackboardComponent() != nullptr);
+
+	if (!bCanUsePerception)
+	{
+		return;
+	}
 	
 	// Skip other monsters
 	if (IsFriendly(Actor))

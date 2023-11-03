@@ -49,6 +49,15 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category="Duration")
 	float BaseDuration = 20.f;
+
+	UPROPERTY(EditAnywhere, Category="Stun")
+	bool bDisableMovement = true;
+
+	UPROPERTY(EditAnywhere, Category="Stun")
+	bool bStopBehaviourTree = true;
+
+	UPROPERTY(EditAnywhere, Category="Stun")
+	bool bStopTargeting = true;
 	
 	UPROPERTY(Transient)
 	float Duration = BaseDuration;

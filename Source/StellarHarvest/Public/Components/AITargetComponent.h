@@ -55,9 +55,13 @@ protected:
 
 	void StopPatrolling() const;
 
-	void RotateTowardsStimuli(const AActor* StimuliActor) const;
+	void RotateTowardsStimuli(AActor* StimuliActor) const;
 
 	void DrawDebug(const float DeltaTime);
+
+	void OnLoseTarget();
+
+	void ResetBlackboard() const;
 	
 public:	
 	// Called every frame
@@ -135,6 +139,9 @@ protected:
 
 	UPROPERTY(Transient)
 	float CurrentDebugTime = 0.f;
+
+	UPROPERTY(Transient)
+	bool bCanUsePerception = true;
 
 // Events
 public:

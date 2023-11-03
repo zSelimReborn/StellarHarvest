@@ -5,6 +5,7 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Components/AITargetComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDebugStunStatus(
@@ -61,14 +62,24 @@ void UStunHandlerComponent::ApplyStun()
 {
 	ensure(OwnerPawn != nullptr);
 
-	OwnerPawn->GetMovementComponent()->Deactivate();
+	if (bDisableMovement)
+	{
+		OwnerPawn->GetMovementComponent()->Deactivate();
+	}
+	
 	AAIController* Controller = OwnerPawn->GetController<AAIController>();
 	if (Controller)
 	{
 		UBehaviorTreeComponent* BTComponent = Controller->FindComponentByClass<UBehaviorTreeComponent>();
-		if (BTComponent)
+		if (BTComponent && bStopBehaviourTree)
 		{
 			BTComponent->PauseLogic(TEXT("Stunned"));
+		}
+
+		UAITargetComponent* TargetComponent = Controller->FindComponentByClass<UAITargetComponent>();
+		if (TargetComponent && bStopTargeting)
+		{
+			TargetComponent->StopSearch();
 		}
 	}
 }
@@ -77,14 +88,24 @@ void UStunHandlerComponent::RemoveStun()
 {
 	ensure(OwnerPawn != nullptr);
 
-	OwnerPawn->GetMovementComponent()->Activate();
+	if (bDisableMovement)
+	{
+		OwnerPawn->GetMovementComponent()->Activate();
+	}
+	
 	AAIController* Controller = OwnerPawn->GetController<AAIController>();
 	if (Controller)
 	{
 		UBehaviorTreeComponent* BTComponent = Controller->FindComponentByClass<UBehaviorTreeComponent>();
-		if (BTComponent)
+		if (BTComponent && bStopBehaviourTree)
 		{
 			BTComponent->ResumeLogic(TEXT("Not Stunned"));
+		}
+
+		UAITargetComponent* TargetComponent = Controller->FindComponentByClass<UAITargetComponent>();
+		if (TargetComponent && bStopTargeting)
+		{
+			TargetComponent->StartSearch();
 		}
 	}
 }
