@@ -26,6 +26,13 @@ enum class EStunDealMode : uint8
 	ESDM_Gradual	UMETA(DisplayName="Gradually")
 };
 
+static TAutoConsoleVariable<bool> CVarDebugCounterMeasures(
+	TEXT("StellarHarvest.Tractor.CounterMeasures"),
+	false,
+	TEXT("Show debug info about counter measures."),
+	ECVF_Default
+);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUseCounterMeasureDelegate, const int32, CurrentAmount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemiesInRangeDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoseEnemiesInRangeDelegate);
@@ -62,6 +69,8 @@ protected:
 	void UpdateGradualStun(const float DeltaTime);
 
 	void CheckForNotStunned();
+
+	void DrawDebugInfo() const;
 	
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -174,6 +183,9 @@ protected:
 
 	UPROPERTY(Transient)
 	FVector FireCounterMeasureLocation;
+	
+	UPROPERTY(Transient)
+	float TriggerRadius;
 
 // Delegates
 protected:

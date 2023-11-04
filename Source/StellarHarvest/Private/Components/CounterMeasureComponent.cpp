@@ -16,6 +16,11 @@ UCounterMeasureComponent::UCounterMeasureComponent()
 void UCounterMeasureComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (TriggerVolumeRef != nullptr)
+	{
+		TriggerRadius = TriggerVolumeRef->GetScaledSphereRadius();
+	}
 }
 
 void UCounterMeasureComponent::OnRegister()
@@ -135,16 +140,16 @@ void UCounterMeasureComponent::UpdateGradualStun(const float DeltaTime)
 {
 	if (StunMode != EStunDealMode::ESDM_Gradual || State != ECounterMeasureState::ECMS_Active || TriggerVolumeRef == nullptr)
 	{
+		GradualCurrentRadius = 0.f;
 		return;
 	}
 
-	const float TriggerRadius = TriggerVolumeRef->GetScaledSphereRadius();
-	const float CurrentRadius = FMath::GetMappedRangeValueClamped(
+	GradualCurrentRadius = FMath::GetMappedRangeValueClamped(
 		TRange<float>{0.f, Duration},
 		TRange<float>{0.f, TriggerRadius},
 		CurrentDuration
 	);
-	const float CurrentRadiusSquared = CurrentRadius * CurrentRadius;
+	const float CurrentRadiusSquared = GradualCurrentRadius * GradualCurrentRadius;
 
 	const FVector OwnerLocation = GetOwner()->GetActorLocation();
 	for (int32 Index = 0; Index < Enemies.Num(); ++Index)
@@ -171,6 +176,29 @@ void UCounterMeasureComponent::CheckForNotStunned()
 	}
 }
 
+void UCounterMeasureComponent::DrawDebugInfo() const
+{
+	if (CVarDebugCounterMeasures->GetBool())
+	{
+		const FString DebugInfo = FString::Printf(
+			TEXT("State: %s | Mode: %s\n"
+					"Duration: %.2f | CurrentDuration: %.2f\n"
+					"Cooldown: %.2f | CurrentCooldown: %.2f\n"
+					"Num Enemies: %d\n"
+					"GradialRadius: %.2f"),
+					*UEnum::GetValueAsString(State), *UEnum::GetValueAsString(StunMode),
+					Duration, CurrentDuration,
+					CooldownDuration, CooldownCurrentTime,
+					Enemies.Num(),
+					GradualCurrentRadius
+		);
+		
+		const FVector OwnerLocation = GetOwner()->GetActorLocation();
+		const FVector DebugLocation = FVector{OwnerLocation.X, OwnerLocation.Y, OwnerLocation.Z + 150.f};
+		DrawDebugString(GetWorld(), DebugLocation, DebugInfo, nullptr, FColor::Blue, 0.001f);
+	}
+}
+
 void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -178,6 +206,8 @@ void UCounterMeasureComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	UpdateActive(DeltaTime);
 	UpdateCooldown(DeltaTime);
 	CheckForNotStunned();
+
+	DrawDebugInfo();
 }
 
 void UCounterMeasureComponent::UseCounterMeasure()
