@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "UI/TractorHud.h"
 #include "Characters/StellarBaseCharacter.h"
+#include "Components/AbilityComponent.h"
 #include "Components/CounterMeasureComponent.h"
 #include "Components/CrystalCollectorComponent.h"
 
@@ -50,6 +51,9 @@ void ATractorPlayerController::SetupInputComponent()
 			EnhancedInputComponent->BindAction(RequestInteractAction, ETriggerEvent::Completed, this, &ATractorPlayerController::RequestFinishInteraction);
 
 			EnhancedInputComponent->BindAction(RequestCounterMeasureAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestCounterMeasure);
+			
+			EnhancedInputComponent->BindAction(RequestPrimaryAbilityAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestPrimaryAbility);
+			EnhancedInputComponent->BindAction(RequestSecondaryAbilityAction, ETriggerEvent::Triggered, this, &ATractorPlayerController::RequestSecondaryAbility);
 
 			InitializeMappingContext();
 		}
@@ -102,6 +106,30 @@ void ATractorPlayerController::RequestCounterMeasure(const FInputActionInstance&
 		if (CounterMeasureComponent != nullptr)
 		{
 			CounterMeasureComponent->UseCounterMeasure();
+		}
+	}
+}
+
+void ATractorPlayerController::RequestPrimaryAbility(const FInputActionInstance&)
+{
+	if (TractorRef != nullptr)
+	{
+		UAbilityComponent* AbilityComponent = TractorRef->FindComponentByClass<UAbilityComponent>();
+		if (AbilityComponent != nullptr)
+		{
+			AbilityComponent->ApplyPrimaryAbility();
+		}
+	}
+}
+
+void ATractorPlayerController::RequestSecondaryAbility(const FInputActionInstance&)
+{
+	if (TractorRef != nullptr)
+	{
+		UAbilityComponent* AbilityComponent = TractorRef->FindComponentByClass<UAbilityComponent>();
+		if (AbilityComponent != nullptr)
+		{
+			AbilityComponent->ApplySecondaryAbility();
 		}
 	}
 }

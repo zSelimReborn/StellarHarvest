@@ -61,6 +61,23 @@ float AStellarBaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& 
 	return DamageAmount;
 }
 
+UAISense_Sight::EVisibilityResult AStellarBaseCharacter::CanBeSeenFrom(const FCanBeSeenFromContext& Context,
+	FVector& OutSeenLocation, int32& OutNumberOfLoSChecksPerformed, int32& OutNumberOfAsyncLosCheckRequested,
+	float& OutSightStrength, int32* UserData, const FOnPendingVisibilityQueryProcessedDelegate* Delegate)
+{
+	return (bIsSightVisible)? UAISense_Sight::EVisibilityResult::Visible : UAISense_Sight::EVisibilityResult::NotVisible;
+}
+
+void AStellarBaseCharacter::SetVisible()
+{
+	bIsSightVisible = true;
+}
+
+void AStellarBaseCharacter::SetInvisible()
+{
+	bIsSightVisible = false;
+}
+
 void AStellarBaseCharacter::RequestMove(const FVector2D& AxisRatio)
 {
 	const float ForwardAxisValue = AxisRatio.X;

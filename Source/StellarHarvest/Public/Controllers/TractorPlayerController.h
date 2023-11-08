@@ -32,6 +32,8 @@ public:
 	void RequestStartInteraction(const FInputActionInstance&);
 	void RequestFinishInteraction(const FInputActionInstance&);
 	void RequestCounterMeasure(const FInputActionInstance&);
+	void RequestPrimaryAbility(const FInputActionInstance&);
+	void RequestSecondaryAbility(const FInputActionInstance&);
 	
 	void EnableMouseMove();
 	void DisableMouseMove();
@@ -105,4 +107,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> RequestCounterMeasureAction;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> RequestPrimaryAbilityAction;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> RequestSecondaryAbilityAction;
 };

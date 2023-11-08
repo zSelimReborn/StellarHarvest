@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Perception/AISightTargetInterface.h"
 #include "StellarBaseCharacter.generated.h"
 
 class USpringArmComponent;
@@ -11,7 +12,7 @@ class UCameraComponent;
 class USearchInteractableComponent;
 
 UCLASS()
-class STELLARHARVEST_API AStellarBaseCharacter : public ACharacter
+class STELLARHARVEST_API AStellarBaseCharacter : public ACharacter, public IAISightTargetInterface
 {
 	GENERATED_BODY()
 
@@ -29,6 +30,17 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual UAISense_Sight::EVisibilityResult CanBeSeenFrom(const FCanBeSeenFromContext& Context, FVector& OutSeenLocation, int32& OutNumberOfLoSChecksPerformed, int32& OutNumberOfAsyncLosCheckRequested, float& OutSightStrength, int32* UserData, const FOnPendingVisibilityQueryProcessedDelegate* Delegate) override;
+
+	UFUNCTION(BlueprintCallable)
+	void SetVisible();
+
+	UFUNCTION(BlueprintCallable)
+	void SetInvisible();
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsSightVisible() const { return bIsSightVisible; }
 
 // Movement interface
 public:
@@ -64,4 +76,7 @@ protected:
 
 	UPROPERTY(Transient)
 	float InitialWalkSpeed;
+
+	UPROPERTY(BlueprintReadWrite, Transient)
+	bool bIsSightVisible = true;
 };
