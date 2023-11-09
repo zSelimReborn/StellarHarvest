@@ -6,6 +6,13 @@
 #include "Gameplay/Abilities/EffectAbility.h"
 #include "Interfaces/Ability.h"
 
+static TAutoConsoleVariable<bool> CVarDebugAbilityComponent(
+	TEXT("StellarHarvest.Tractor.AbilityComponent"),
+	false,
+	TEXT("Show debug info about abilities."),
+	ECVF_Default
+);
+
 UAbilityComponent::UAbilityComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -24,22 +31,24 @@ void UAbilityComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	UpdateActiveAbility(DeltaTime);
 	Cooldown(DeltaTime);
+
+	DrawDebugInfo();
 }
 
 void UAbilityComponent::ApplyPrimaryAbility()
 {
-	if (!CanApplyAbility() || PrimaryAbility == nullptr)
+	if (!CanApplyPrimaryAbility())
 	{
 		return;
 	}
-
+	
 	ApplyAbility(PrimaryAbility);
 	PrimaryAbilityState = EAbilityState::EAS_Active;
 }
 
 void UAbilityComponent::ApplySecondaryAbility()
 {
-	if (!CanApplyAbility() || SecondaryAbility == nullptr)
+	if (!CanApplySecondaryAbility())
 	{
 		return;
 	}
@@ -62,7 +71,7 @@ void UAbilityComponent::ApplyAbility(UEffectAbility* Ability)
 
 void UAbilityComponent::UpdateActiveAbility(const float DeltaTime)
 {
-	if (PrimaryAbilityState != EAbilityState::EAS_Active || SecondaryAbilityState != EAbilityState::EAS_Active)
+	if (PrimaryAbilityState != EAbilityState::EAS_Active && SecondaryAbilityState != EAbilityState::EAS_Active)
 	{
 		return;
 	}
@@ -91,7 +100,7 @@ void UAbilityComponent::ResetLastAbility()
 
 void UAbilityComponent::Cooldown(const float DeltaTime)
 {
-	if (PrimaryAbilityState != EAbilityState::EAS_Cooldown || SecondaryAbilityState != EAbilityState::EAS_Cooldown)
+	if (PrimaryAbilityState != EAbilityState::EAS_Cooldown && SecondaryAbilityState != EAbilityState::EAS_Cooldown)
 	{
 		return;
 	}
@@ -118,10 +127,40 @@ void UAbilityComponent::Cooldown(const float DeltaTime)
 	}
 }
 
-bool UAbilityComponent::CanApplyAbility() const
+void UAbilityComponent::DrawDebugInfo() const
 {
-	// TODO check
-	return PrimaryAbilityState != EAbilityState::EAS_Active &&
-		SecondaryAbilityState != EAbilityState::EAS_Active;
+	if (CVarDebugAbilityComponent->GetBool())
+	{
+		const FString LastAbilityName = (LastAbility != nullptr)? IAbility::Execute_GetName(LastAbility).ToString() : TEXT("None");
+		const float LastAbilityDuration = (LastAbility != nullptr)? LastAbility->GetDuration() : 0.f;
+		const FString DebugInfo = FString::Printf(TEXT("LastAbility: %s\n"
+				"PrimaryState: %s | SecondaryState: %s\n"
+				"Last Ability Duration: %.2f | Current Time: %.2f\n"
+				"Primary Cooldown Duration: %.2f | Current Cooldown: %.2f\n"
+				"Secondary Cooldown Duration: %.2f | Current Cooldown: %.2f\n"
+			),
+			*LastAbilityName,
+			*UEnum::GetValueAsString(PrimaryAbilityState), *UEnum::GetValueAsString(SecondaryAbilityState),
+			LastAbilityDuration, LastAbilityCurrentTime,
+			PrimaryAbility->GetCooldownDuration(), PrimaryCooldownTime,
+			SecondaryAbility->GetCooldownDuration(), SecondaryCooldownTime
+		);
+		
+		const FVector OwnerLocation = GetOwner()->GetActorLocation();
+		const FVector TextLocation = {OwnerLocation.X, OwnerLocation.Y, OwnerLocation.Z + 150.f};
+		DrawDebugString(GetWorld(), TextLocation, DebugInfo, nullptr, FColor::Red, 0.0001f);
+	}
+}
+
+bool UAbilityComponent::CanApplyPrimaryAbility() const
+{
+	if (PrimaryAbility == nullptr) { return false; }
+	return PrimaryAbilityState == EAbilityState::EAS_Idle && SecondaryAbilityState != EAbilityState::EAS_Active;
+}
+
+bool UAbilityComponent::CanApplySecondaryAbility() const
+{
+	if (SecondaryAbility == nullptr) { return false; }
+	return SecondaryAbilityState == EAbilityState::EAS_Idle && PrimaryAbilityState != EAbilityState::EAS_Active;
 }
 

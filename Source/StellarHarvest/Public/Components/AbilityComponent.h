@@ -47,6 +47,8 @@ protected:
 	void ResetLastAbility();
 
 	void Cooldown(const float DeltaTime);
+
+	void DrawDebugInfo() const;
 	
 // Getters
 public:
@@ -64,9 +66,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE EAbilityState GetSecondaryAbilityState() const { return SecondaryAbilityState; }
+	
+	UFUNCTION(BlueprintPure)
+	bool CanApplyPrimaryAbility() const;
 
 	UFUNCTION(BlueprintPure)
-	bool CanApplyAbility() const;
+	bool CanApplySecondaryAbility() const;
 
 // Properties
 protected:
