@@ -17,6 +17,15 @@ enum class EAbilityState : uint8
 	EAS_MAX
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPrimaryAbilityAppliedDelegate, const UEffectAbility*, Ability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPrimaryAbilityRemovedDelegate, const UEffectAbility*, Ability);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryAbilityAppliedDelegate, const UEffectAbility*, Ability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryAbilityRemovedDelegate, const UEffectAbility*, Ability);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPrimaryAbilityAvailableDelegate, const UEffectAbility*, Ability);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryAbilityAvailableDelegate, const UEffectAbility*, Ability);
+
 // Now handles only UEffectAbility
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip="Component to apply effect ability to owner") )
 class STELLARHARVEST_API UAbilityComponent : public UActorComponent
@@ -104,4 +113,24 @@ protected:
 
 	UPROPERTY()
 	float SecondaryCooldownTime = 0.f;
+
+// Events
+protected:
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnPrimaryAbilityAppliedDelegate OnPrimaryAbilityApplied;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnPrimaryAbilityRemovedDelegate OnPrimaryAbilityRemoved;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnPrimaryAbilityAvailableDelegate OnPrimaryAbilityAvailable;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnSecondaryAbilityAppliedDelegate OnSecondaryAbilityApplied;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnSecondaryAbilityRemovedDelegate OnSecondaryAbilityRemoved;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnSecondaryAbilityAvailableDelegate OnSecondaryAbilityAvailable;
 };

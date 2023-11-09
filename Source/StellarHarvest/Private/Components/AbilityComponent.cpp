@@ -44,6 +44,7 @@ void UAbilityComponent::ApplyPrimaryAbility()
 	
 	ApplyAbility(PrimaryAbility);
 	PrimaryAbilityState = EAbilityState::EAS_Active;
+	OnPrimaryAbilityApplied.Broadcast(PrimaryAbility);
 }
 
 void UAbilityComponent::ApplySecondaryAbility()
@@ -55,6 +56,7 @@ void UAbilityComponent::ApplySecondaryAbility()
 
 	ApplyAbility(SecondaryAbility);
 	SecondaryAbilityState = EAbilityState::EAS_Active;
+	OnSecondaryAbilityApplied.Broadcast(SecondaryAbility);
 }
 
 void UAbilityComponent::ApplyAbility(UEffectAbility* Ability)
@@ -92,8 +94,18 @@ void UAbilityComponent::UpdateActiveAbility(const float DeltaTime)
 void UAbilityComponent::ResetLastAbility()
 {
 	IAbility::Execute_Remove(LastAbility, GetOwner());
-	PrimaryAbilityState = (PrimaryAbilityState == EAbilityState::EAS_Active)? EAbilityState::EAS_Cooldown : PrimaryAbilityState;
-	SecondaryAbilityState = (SecondaryAbilityState == EAbilityState::EAS_Active)? EAbilityState::EAS_Cooldown : SecondaryAbilityState;
+	if (PrimaryAbilityState == EAbilityState::EAS_Active)
+	{
+		PrimaryAbilityState = EAbilityState::EAS_Cooldown;
+		OnPrimaryAbilityRemoved.Broadcast(PrimaryAbility);
+	}
+
+	if (SecondaryAbilityState == EAbilityState::EAS_Active)
+	{
+		SecondaryAbilityState = EAbilityState::EAS_Cooldown;
+		OnSecondaryAbilityRemoved.Broadcast(SecondaryAbility);
+	}
+	
 	LastAbilityCurrentTime = 0.f;
 	LastAbility = nullptr;
 }
@@ -113,6 +125,7 @@ void UAbilityComponent::Cooldown(const float DeltaTime)
 		{
 			PrimaryAbilityState = EAbilityState::EAS_Idle;
 			PrimaryCooldownTime = 0.f;
+			OnPrimaryAbilityAvailable.Broadcast(PrimaryAbility);
 		}
 	}
 
@@ -123,6 +136,7 @@ void UAbilityComponent::Cooldown(const float DeltaTime)
 		{
 			SecondaryAbilityState = EAbilityState::EAS_Idle;
 			SecondaryCooldownTime = 0.f;
+			OnSecondaryAbilityAvailable.Broadcast(SecondaryAbility);
 		}
 	}
 }
