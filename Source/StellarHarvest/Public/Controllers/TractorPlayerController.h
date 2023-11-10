@@ -12,6 +12,7 @@ class UInputAction;
 class UInputMappingContext;
 struct FInputActionInstance;
 class UTractorHud;
+class UEffectAbility;
 
 /**
  * 
@@ -64,6 +65,24 @@ protected:
 
 	UFUNCTION()
 	void OnCounterMeasureCooldownFinished();
+
+	UFUNCTION()
+	void OnPrimaryAbilityApplied(const UEffectAbility* Ability);
+
+	UFUNCTION()
+	void OnPrimaryAbilityRemoved(const UEffectAbility* Ability);
+	
+	UFUNCTION()
+	void OnPrimaryAbilityAvailable(const UEffectAbility* Ability);
+	
+	UFUNCTION()
+	void OnSecondaryAbilityApplied(const UEffectAbility* Ability);
+
+	UFUNCTION()
+	void OnSecondaryAbilityRemoved(const UEffectAbility* Ability);
+
+	UFUNCTION()
+	void OnSecondaryAbilityAvailable(const UEffectAbility* Ability);
 	
 // Properties
 protected:

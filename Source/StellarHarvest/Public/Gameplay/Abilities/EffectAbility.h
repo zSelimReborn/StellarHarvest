@@ -21,7 +21,7 @@ public:
 
 	virtual void Remove_Implementation(AActor* Instigator) override;
 
-	virtual FName GetName_Implementation() const override;
+	virtual FName GetAbilityId_Implementation() const override;
 
 public:
 	UFUNCTION(BlueprintPure)
@@ -39,5 +39,5 @@ protected:
 	float CooldownDuration = 5.f;
 
 	UPROPERTY(EditAnywhere, Category="Ability")
-	FName Name;
+	FName AbilityId;
 };

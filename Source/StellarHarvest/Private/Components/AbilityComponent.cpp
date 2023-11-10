@@ -21,9 +21,20 @@ UAbilityComponent::UAbilityComponent()
 void UAbilityComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	PrimaryAbility = NewObject<UEffectAbility>(GetOwner(), PrimaryAbilityClass);
-	SecondaryAbility = NewObject<UEffectAbility>(GetOwner(), SecondaryAbilityClass);
+}
+
+void UAbilityComponent::OnRegister()
+{
+	Super::OnRegister();
+	if (PrimaryAbilityClass != nullptr)
+	{
+		PrimaryAbility = NewObject<UEffectAbility>(GetOwner(), PrimaryAbilityClass);
+	}
+
+	if (SecondaryAbilityClass != nullptr)
+	{
+		SecondaryAbility = NewObject<UEffectAbility>(GetOwner(), SecondaryAbilityClass);		
+	}
 }
 
 void UAbilityComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -145,7 +156,9 @@ void UAbilityComponent::DrawDebugInfo() const
 {
 	if (CVarDebugAbilityComponent->GetBool())
 	{
-		const FString LastAbilityName = (LastAbility != nullptr)? IAbility::Execute_GetName(LastAbility).ToString() : TEXT("None");
+		const FString LastAbilityName = (LastAbility != nullptr)?
+			FindAbilityName(IAbility::Execute_GetAbilityId(LastAbility)).ToString() : TEXT("None");
+		
 		const float LastAbilityDuration = (LastAbility != nullptr)? LastAbility->GetDuration() : 0.f;
 		const FString DebugInfo = FString::Printf(TEXT("LastAbility: %s\n"
 				"PrimaryState: %s | SecondaryState: %s\n"
@@ -166,6 +179,22 @@ void UAbilityComponent::DrawDebugInfo() const
 	}
 }
 
+FName UAbilityComponent::FindAbilityName(const FName Id) const
+{
+	if (AbilityDataTable == nullptr)
+	{
+		return TEXT("None");
+	}
+
+	const FAbilityData* AbilityData = AbilityDataTable->FindRow<FAbilityData>(Id, TEXT(""));
+	if (AbilityData == nullptr)
+	{
+		return TEXT("None");
+	}
+
+	return AbilityData->DisplayName;
+}
+
 bool UAbilityComponent::CanApplyPrimaryAbility() const
 {
 	if (PrimaryAbility == nullptr) { return false; }
@@ -176,5 +205,25 @@ bool UAbilityComponent::CanApplySecondaryAbility() const
 {
 	if (SecondaryAbility == nullptr) { return false; }
 	return SecondaryAbilityState == EAbilityState::EAS_Idle && PrimaryAbilityState != EAbilityState::EAS_Active;
+}
+
+float UAbilityComponent::GetPrimaryAbilityCooldownRatio() const
+{
+	if (PrimaryAbility == nullptr || PrimaryAbilityState != EAbilityState::EAS_Cooldown)
+	{
+		return 0.f;
+	}
+
+	return PrimaryCooldownTime / PrimaryAbility->GetCooldownDuration();
+}
+
+float UAbilityComponent::GetSecondaryAbilityCooldownRatio() const
+{
+	if (SecondaryAbility == nullptr || SecondaryAbilityState != EAbilityState::EAS_Cooldown)
+	{
+		return 0.f;
+	}
+
+	return SecondaryCooldownTime / SecondaryAbility->GetCooldownDuration();
 }
 

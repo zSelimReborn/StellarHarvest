@@ -11,7 +11,7 @@ void UEffectAbility::Remove_Implementation(AActor* Instigator)
 {
 }
 
-FName UEffectAbility::GetName_Implementation() const
+FName UEffectAbility::GetAbilityId_Implementation() const
 {
-	return Name;
+	return AbilityId;
 }

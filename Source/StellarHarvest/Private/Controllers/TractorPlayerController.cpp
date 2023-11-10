@@ -10,6 +10,7 @@
 #include "Components/AbilityComponent.h"
 #include "Components/CounterMeasureComponent.h"
 #include "Components/CrystalCollectorComponent.h"
+#include "Components/AbilityComponent.h"
 
 static TAutoConsoleVariable<bool> CVarDebugMouseMove(
 	TEXT("StellarHarvest.Tractor.DebugMouseMove"),
@@ -197,6 +198,18 @@ void ATractorPlayerController::SetupEvents()
 		CounterMeasureComponent->OnLoseEnemiesInRange().AddDynamic(this, &ATractorPlayerController::OnLoseEnemiesInRange);
 		CounterMeasureComponent->OnCooldownFinished().AddDynamic(this, &ATractorPlayerController::OnCounterMeasureCooldownFinished);
 	}
+
+	UAbilityComponent* AbilityComponent = GetPawn()->FindComponentByClass<UAbilityComponent>();
+	if (AbilityComponent)
+	{
+		AbilityComponent->OnPrimaryAbilityApplied.AddDynamic(this, &ATractorPlayerController::OnPrimaryAbilityApplied);
+		AbilityComponent->OnPrimaryAbilityAvailable.AddDynamic(this, &ATractorPlayerController::OnPrimaryAbilityAvailable);
+		AbilityComponent->OnPrimaryAbilityRemoved.AddDynamic(this, &ATractorPlayerController::OnPrimaryAbilityRemoved);
+		
+		AbilityComponent->OnSecondaryAbilityApplied.AddDynamic(this, &ATractorPlayerController::OnSecondaryAbilityApplied);
+		AbilityComponent->OnSecondaryAbilityAvailable.AddDynamic(this, &ATractorPlayerController::OnSecondaryAbilityAvailable);
+		AbilityComponent->OnSecondaryAbilityRemoved.AddDynamic(this, &ATractorPlayerController::OnSecondaryAbilityRemoved);
+	}
 }
 
 void ATractorPlayerController::OnCollectCrystals(const int32 CollectedCrystals, const int32 TotalCrystals)
@@ -236,6 +249,55 @@ void ATractorPlayerController::OnCounterMeasureCooldownFinished()
 	if (HUDWidgetRef != nullptr)
 	{
 		HUDWidgetRef->OnCounterMeasureCooldownFinished();
+	}
+}
+
+void ATractorPlayerController::OnPrimaryAbilityApplied(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnPrimaryAbilityApplied(Ability);
+	}
+}
+
+void ATractorPlayerController::OnPrimaryAbilityRemoved(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnPrimaryAbilityRemoved(Ability);
+	}
+}
+
+
+void ATractorPlayerController::OnPrimaryAbilityAvailable(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnPrimaryAbilityAvailable(Ability);
+	}
+}
+
+void ATractorPlayerController::OnSecondaryAbilityApplied(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnSecondaryAbilityApplied(Ability);
+	}
+}
+
+void ATractorPlayerController::OnSecondaryAbilityRemoved(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnSecondaryAbilityRemoved(Ability);
+	}
+}
+
+void ATractorPlayerController::OnSecondaryAbilityAvailable(const UEffectAbility* Ability)
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnSecondaryAbilityAvailable(Ability);
 	}
 }
 

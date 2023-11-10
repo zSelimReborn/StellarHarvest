@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Gameplay/Abilities/EffectAbility.h"
 #include "TractorHud.generated.h"
+
+class UEffectAbility;
 
 /**
  * 
@@ -32,4 +35,22 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCounterMeasureCooldownFinished();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPrimaryAbilityApplied(const UEffectAbility* Ability);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPrimaryAbilityRemoved(const UEffectAbility* Ability);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPrimaryAbilityAvailable(const UEffectAbility* Ability);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSecondaryAbilityApplied(const UEffectAbility* Ability);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSecondaryAbilityRemoved(const UEffectAbility* Ability);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSecondaryAbilityAvailable(const UEffectAbility* Ability);
 };

@@ -13,6 +13,18 @@ class UAbility : public UInterface
 	GENERATED_BODY()
 };
 
+USTRUCT(BlueprintType)
+struct FAbilityData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName DisplayName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UTexture2D> Texture;
+};
+
 /**
  * 
  */
@@ -28,6 +40,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category="Ability")
 	void Remove(AActor* Instigator);
 
-	UFUNCTION(BlueprintNativeEvent, Category="Ability")
-	FName GetName() const;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	FName GetAbilityId() const;
 };

@@ -38,6 +38,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void OnRegister() override;
+
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -58,6 +60,8 @@ protected:
 	void Cooldown(const float DeltaTime);
 
 	void DrawDebugInfo() const;
+
+	FName FindAbilityName(const FName Id) const;
 	
 // Getters
 public:
@@ -81,6 +85,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	bool CanApplySecondaryAbility() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetPrimaryAbilityCooldownRatio() const;
+
+	UFUNCTION(BlueprintPure)
+	float GetSecondaryAbilityCooldownRatio() const;
 
 // Properties
 protected:
@@ -114,8 +124,11 @@ protected:
 	UPROPERTY()
 	float SecondaryCooldownTime = 0.f;
 
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TObjectPtr<UDataTable> AbilityDataTable;
+
 // Events
-protected:
+public:
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnPrimaryAbilityAppliedDelegate OnPrimaryAbilityApplied;
 
