@@ -53,4 +53,13 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSecondaryAbilityAvailable(const UEffectAbility* Ability);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnNewScoreGoal();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnReachScoreGoal();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnGameOver(const bool bIsWinner);
 };

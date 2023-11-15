@@ -5,9 +5,9 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/SearchInteractableComponent.h"
-#include "Components/HighlightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameStates/StellarHarvestGameState.h"
 #include "Interfaces/Interactable.h"
 
 // Sets default values
@@ -52,10 +52,15 @@ float AStellarBaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& 
 	AController* EventInstigator, AActor* DamageCauser)
 {
 	DamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
 	APlayerController* PC = GetController<APlayerController>();
 	if (PC != nullptr)
 	{
-		PC->RestartLevel();
+		AStellarHarvestGameState* GameState = GetWorld()->GetGameState<AStellarHarvestGameState>();
+		if (GameState != nullptr)
+		{
+			GameState->GameOver(PC, false);
+		}
 	}
 	
 	return DamageAmount;
@@ -89,15 +94,11 @@ void AStellarBaseCharacter::RequestMove(const FVector2D& AxisRatio)
 	
 	AddMovementInput(CurrentRotationMatrix.GetScaledAxis(EAxis::X), ForwardAxisValue);
 	AddMovementInput(CurrentRotationMatrix.GetScaledAxis(EAxis::Y), RightAxisValue);
-
-	// TODO Engine sound?
 }
 
 void AStellarBaseCharacter::RequestMove(const FVector& Direction, const float AxisRatio)
 {
 	AddMovementInput(Direction, AxisRatio);
-	
-	// TODO Engine sound?
 }
 
 void AStellarBaseCharacter::RequestStartInteraction()

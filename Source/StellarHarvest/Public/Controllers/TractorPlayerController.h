@@ -41,6 +41,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsUsingMouseMove() const { return bUseMouseMove && bIsUsingMouseMove; }
+
+	void NewScoreGoal() const;
+	
+	UFUNCTION(BlueprintCallable)
+	void ReachedScoreGoal();
+
+	UFUNCTION(BlueprintCallable)
+	void GameOver(const bool bIsWinner);
 	
 protected:
 	void InitializeMappingContext();

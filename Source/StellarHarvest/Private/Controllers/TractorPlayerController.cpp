@@ -11,6 +11,8 @@
 #include "Components/CounterMeasureComponent.h"
 #include "Components/CrystalCollectorComponent.h"
 #include "Components/AbilityComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameStates/StellarHarvestGameState.h"
 
 static TAutoConsoleVariable<bool> CVarDebugMouseMove(
 	TEXT("StellarHarvest.Tractor.DebugMouseMove"),
@@ -145,6 +147,34 @@ void ATractorPlayerController::DisableMouseMove()
 	bIsUsingMouseMove = false;
 }
 
+void ATractorPlayerController::NewScoreGoal() const
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnNewScoreGoal();
+	}
+}
+
+void ATractorPlayerController::ReachedScoreGoal()
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnReachScoreGoal();
+	}
+}
+
+void ATractorPlayerController::GameOver(const bool bIsWinner)
+{
+	const FInputModeUIOnly InputUIMode;
+	SetInputMode(InputUIMode);
+	GetCharacter()->GetCharacterMovement()->DisableMovement();
+	
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->OnGameOver(bIsWinner);
+	}
+}
+
 void ATractorPlayerController::MoveUsingMouse()
 {
 	if (bUseMouseMove && bIsUsingMouseMove && TractorRef != nullptr)
@@ -217,6 +247,12 @@ void ATractorPlayerController::OnCollectCrystals(const int32 CollectedCrystals, 
 	if (HUDWidgetRef != nullptr)
 	{
 		HUDWidgetRef->OnCollectCrystals(CollectedCrystals, TotalCrystals);
+	}
+
+	AStellarHarvestGameState* GameState = Cast<AStellarHarvestGameState>(GetWorld()->GetGameState());
+	if (GameState != nullptr)
+	{
+		GameState->AddScore(this, CollectedCrystals);
 	}
 }
 
