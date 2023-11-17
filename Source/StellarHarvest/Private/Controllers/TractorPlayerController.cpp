@@ -147,6 +147,14 @@ void ATractorPlayerController::DisableMouseMove()
 	bIsUsingMouseMove = false;
 }
 
+void ATractorPlayerController::StartGame()
+{
+	if (HUDWidgetRef != nullptr)
+	{
+		HUDWidgetRef->AddToPlayerScreen();
+	}
+}
+
 void ATractorPlayerController::NewScoreGoal() const
 {
 	if (HUDWidgetRef != nullptr)
@@ -357,7 +365,6 @@ void ATractorPlayerController::InitializeHUD()
 		if (HUDWidgetRef != nullptr)
 		{
 			HUDWidgetRef->InitializeWidget(this);
-			HUDWidgetRef->AddToPlayerScreen();
 		}
 	}
 }

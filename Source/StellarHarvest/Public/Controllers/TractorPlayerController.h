@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsUsingMouseMove() const { return bUseMouseMove && bIsUsingMouseMove; }
 
+	UFUNCTION(BlueprintCallable)
+	void StartGame();
+
 	void NewScoreGoal() const;
 	
 	UFUNCTION(BlueprintCallable)

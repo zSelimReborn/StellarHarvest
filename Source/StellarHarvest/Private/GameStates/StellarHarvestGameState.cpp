@@ -10,7 +10,6 @@
 void AStellarHarvestGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	InitializeScore();
 }
 
 void AStellarHarvestGameState::ReceivedGameModeClass()
@@ -18,6 +17,25 @@ void AStellarHarvestGameState::ReceivedGameModeClass()
 	Super::ReceivedGameModeClass();
 
 	GameModeRef = Cast<AStellarHarvestGameModeBase>(AuthorityGameMode);
+}
+
+void AStellarHarvestGameState::StartGame()
+{
+	if (GameModeRef == nullptr)
+	{
+		return;
+	}
+	
+	ScoreGoal = GameModeRef->GetCrystalsGoal();
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		ATractorPlayerController* PC = Cast<ATractorPlayerController>(Iterator->Get());
+		if (PC != nullptr)
+		{
+			PC->StartGame();
+			PC->NewScoreGoal();
+		}
+	}
 }
 
 void AStellarHarvestGameState::RestartGame(APlayerController* PlayerController)
@@ -76,24 +94,6 @@ void AStellarHarvestGameState::OnReturnToBase(APlayerController* PlayerControlle
 	{
 		// No check on PlayerController. We're singleplayer
 		GameOver(PlayerController, true);
-	}
-}
-
-void AStellarHarvestGameState::InitializeScore()
-{
-	if (GameModeRef == nullptr)
-	{
-		return;
-	}
-	
-	ScoreGoal = GameModeRef->GetCrystalsGoal();
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	{
-		const ATractorPlayerController* PC = Cast<ATractorPlayerController>(Iterator->Get());
-		if (PC != nullptr)
-		{
-			PC->NewScoreGoal();
-		}
 	}
 }
 

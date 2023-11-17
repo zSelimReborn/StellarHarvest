@@ -25,6 +25,9 @@ protected:
 // BP Interface
 public:
 	UFUNCTION(BlueprintCallable)
+	void StartGame();
+	
+	UFUNCTION(BlueprintCallable)
 	void RestartGame(APlayerController* PlayerController);
 	
 	UFUNCTION(BlueprintCallable)
@@ -49,9 +52,7 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnWin(APlayerController* PlayerController);
-
-	void InitializeScore();
-
+	
 // Properties
 protected:
 	UPROPERTY(Transient)
