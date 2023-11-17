@@ -7,6 +7,7 @@
 #include "StellarHarvestGameState.generated.h"
 
 class AStellarHarvestGameModeBase;
+class UStellarHarvestSaveGame;
 
 /**
  *  GameState created to be compliant to unreal engine networking system
@@ -17,6 +18,9 @@ class STELLARHARVEST_API AStellarHarvestGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
+public:
+	AStellarHarvestGameState();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -45,6 +49,21 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetScoreGoal() const { return ScoreGoal; }
 
+	UFUNCTION(BlueprintPure)
+	bool ShouldUseTimer() const { return bUseTimer; }
+
+	UFUNCTION(BlueprintPure)
+	float GetCurrentTimer() const { return CurrentTimer; }
+
+	UFUNCTION(BlueprintPure)
+	float GetBestTime() const;
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetLastBestTime() const { return LastBestTime; };
+
+public:
+	virtual void Tick(float DeltaSeconds) override;
+
 // Helpers
 protected:
 	UFUNCTION(BlueprintNativeEvent)
@@ -52,6 +71,14 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnWin(APlayerController* PlayerController);
+
+	void UpdateTimer(const float DeltaTime);
+
+	void TrySaveGame();
+	
+	void LoadSaveGame();
+
+	UStellarHarvestSaveGame* GetDefaultSaveGame() const;
 	
 // Properties
 protected:
@@ -62,5 +89,23 @@ protected:
 	int32 ScoreGoal = 0;
 
 	UPROPERTY(Transient)
+	bool bUseTimer = false;
+
+	UPROPERTY(Transient)
+	bool bGameStarted = false;
+
+	UPROPERTY(Transient)
+	float CurrentTimer = 0.f;
+
+	UPROPERTY(Transient)
+	float LastBestTime = -1.f;
+
+	UPROPERTY(Transient)
 	TObjectPtr<AStellarHarvestGameModeBase> GameModeRef;
+
+	UPROPERTY()
+	FString SaveSlot = TEXT("StellarHarvestSaveGame");
+	
+	UPROPERTY()
+	TObjectPtr<UStellarHarvestSaveGame> SaveGameRef;
 };
