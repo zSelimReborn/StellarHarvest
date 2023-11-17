@@ -167,12 +167,15 @@ void ATractorPlayerController::GameOver(const bool bIsWinner)
 {
 	const FInputModeUIOnly InputUIMode;
 	SetInputMode(InputUIMode);
-	GetCharacter()->GetCharacterMovement()->DisableMovement();
+	SetShowMouseCursor(true);
 	
-	if (HUDWidgetRef != nullptr)
+	if (HUDWidgetRef == nullptr)
 	{
-		HUDWidgetRef->OnGameOver(bIsWinner);
+		UE_LOG(LogTemp, Error, TEXT("Player HUD or GameOver are nullptr"));
+		return;
 	}
+
+	HUDWidgetRef->OnGameOver(bIsWinner);
 }
 
 void ATractorPlayerController::MoveUsingMouse()

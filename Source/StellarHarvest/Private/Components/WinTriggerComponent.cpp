@@ -3,32 +3,100 @@
 
 #include "Components/WinTriggerComponent.h"
 
-// Sets default values for this component's properties
+#include "Components/ShapeComponent.h"
+#include "GameStates/StellarHarvestGameState.h"
+
 UWinTriggerComponent::UWinTriggerComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-// Called when the game starts
 void UWinTriggerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	GameState = Cast<AStellarHarvestGameState>(GetWorld()->GetGameState());
 }
 
-
-// Called every frame
-void UWinTriggerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UWinTriggerComponent::OnRegister()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::OnRegister();
+	UShapeComponent* Volume = GetOwner()->FindComponentByClass<UShapeComponent>();
+	SetTriggerVolume(Volume);
+}
 
-	// ...
+void UWinTriggerComponent::BindEvents()
+{
+	if (TriggerVolume == nullptr)
+	{
+		return;
+	}
+
+	TriggerVolume->OnComponentBeginOverlap.AddUniqueDynamic(this, &UWinTriggerComponent::OnVolumeStartOverlap);
+}
+
+void UWinTriggerComponent::UnBindEvents()
+{
+	if (TriggerVolume == nullptr)
+	{
+		return;
+	}
+
+	TriggerVolume->OnComponentBeginOverlap.RemoveDynamic(this, &UWinTriggerComponent::OnVolumeStartOverlap);
+}
+
+void UWinTriggerComponent::OnVolumeStartOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UE_LOG(LogTemp, Error, TEXT("Overlapping actor: %s"), *OtherActor->GetActorLabel());
+	TryWinGame(OtherActor);	
+}
+
+void UWinTriggerComponent::TryWinGame(AActor* OverlappingActor) const
+{
+	if (GameState == nullptr)
+	{
+		return;
+	}
+	
+	if (OverlappingActor == nullptr)
+	{
+		return;
+	}
+
+	APawn* Pawn = Cast<APawn>(OverlappingActor);
+	if (Pawn == nullptr)
+	{
+		return;
+	}
+
+	APlayerController* PC = Pawn->GetController<APlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	GameState->OnReturnToBase(PC);
+}
+
+void UWinTriggerComponent::SetTriggerVolume(UShapeComponent* NewVolume)
+{
+	if (NewVolume == nullptr)
+	{
+		return;
+	}
+
+	if (NewVolume == TriggerVolume)
+	{
+		return;
+	}
+
+	if (NewVolume->GetOwner() != GetOwner())
+	{
+		return;
+	}
+
+	UnBindEvents();
+	TriggerVolume = NewVolume;
+	BindEvents();
 }
 
