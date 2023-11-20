@@ -152,6 +152,8 @@ void UCrystalCollectorComponent::StartHarvesting(ACrystal* CrystalCluster)
 
 	const float RemainingHarvestTime = CrystalCluster->GetRemainingHarvestTime();
 	SetComponentTickEnabled(true);
+	OnStartHarvesting.Broadcast();
+	
 	if (bOneShotHarvest)
 	{
 		GetOwner()->GetWorldTimerManager().SetTimer(HarvestCrystalTimerHandle, this, &UCrystalCollectorComponent::FullHarvest, RemainingHarvestTime, false);
@@ -175,6 +177,7 @@ void UCrystalCollectorComponent::StopHarvesting()
 	CurrentHarvestTime = 0.f;
 	EnableOwnerMovement();
 	SetComponentTickEnabled(false);
+	OnStopHarvesting.Broadcast();
 	
 	if (bFireAnimationDuringHarvest)
 	{

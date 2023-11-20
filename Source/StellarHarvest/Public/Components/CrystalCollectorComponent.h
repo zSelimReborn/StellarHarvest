@@ -14,6 +14,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	const int32, TotalCrystals
 );
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(
+	FOnStartHarvestingDelegate
+);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(
+	FOnStopHarvestingDelegate
+);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STELLARHARVEST_API UCrystalCollectorComponent : public UActorComponent
 {
@@ -119,5 +127,12 @@ protected:
 
 // Delegates
 protected:
+	UPROPERTY(BlueprintAssignable)
 	FOnCollectCrystalsDelegate OnCollectCrystalsDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStartHarvestingDelegate OnStartHarvesting;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStopHarvestingDelegate OnStopHarvesting;
 };
