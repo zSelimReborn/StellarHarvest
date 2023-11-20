@@ -48,7 +48,7 @@ void USearchInteractableComponent::SearchForInteractables()
 	AActor* FoundItem = (TraceResult.GetActor());
 	if (bHitSomething && FoundItem && FoundItem->Implements<UInteractable>())
 	{
-		if (FoundItem != ItemFoundRef)
+		if (FoundItem != ItemFoundRef && IInteractable::Execute_CanBeInteracted(FoundItem, GetOwner()))
 		{
 			NewItemFoundDelegate.Broadcast(TraceResult, FoundItem);
 			ItemFoundRef = FoundItem;
