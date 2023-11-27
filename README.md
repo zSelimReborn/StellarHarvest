@@ -25,7 +25,7 @@ We have been given a couple of rules:
 ## The Team - Gourd Ghouls
 
 Designers:
-* @Connor Dearborn
+* [Connor Dearborn](https://sites.google.com/view/conrdesign?usp=sharing)
 * @Sean Kannemeyer
 
 Modelers:
@@ -200,7 +200,7 @@ They can also turn it the movement using the mouse or turn off the scaling of th
 
 ## Credits
 
-Game And Level Design/Painting by @Connor Dearborn and @Sean Kannemeyer
+Game And Level Design/Painting by [Connor Dearborn](https://sites.google.com/view/conrdesign?usp=sharing) and @Sean Kannemeyer
 
 Modeling and Texturing by @Miranda Robinson and @Kishen Patel
 
