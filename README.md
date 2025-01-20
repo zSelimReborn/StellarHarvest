@@ -4,6 +4,10 @@
 
 Stellar Harvest is a collaborative project born to compete in the "Autumn Harvest Challenge" proposed by CG Spectrum.  
 
+Here's a video showing the final complete game with all the features implemented.
+
+[Showcase Video](https://www.youtube.com/watch?v=-4n2DoCYoSM)
+
 ## The challenge
 The goal of the challenge is to create a single playable level that follows this theme: **Harvesting**.
 
@@ -34,12 +38,6 @@ Modelers:
 
 Programmer:
 * Me :)
-
-## Gameplay Overview
-
-Here's a video showing the final complete game with all the features implemented.
-
-[Showcase Video](https://www.youtube.com/watch?v=-4n2DoCYoSM)
 
 ## The concept
 **Theme**: Harvest, Science-Fiction.
